@@ -1,0 +1,92 @@
+stages:
+  fetch_dmtrdr:
+    cmd: uv run python -m ru_jailbreak_guard.data.dmtrdr --output data/raw/dmtrdr.parquet
+    params:
+      - dmtrdr.revision
+    outs:
+      - data/raw/dmtrdr.parquet
+
+  fetch_hivetrace_sysprompt:
+    cmd: uv run python -m ru_jailbreak_guard.data.hivetrace_red --output data/raw/hivetrace_sysprompt.parquet
+    outs:
+      - data/raw/hivetrace_sysprompt.parquet
+
+  fetch_wildguardmix:
+    cmd: uv run python -m ru_jailbreak_guard.data.wildguardmix --output data/raw/wildguardmix_ru.parquet
+    outs:
+      - data/raw/wildguardmix_ru.parquet
+
+  fetch_benign:
+    cmd: >
+      uv run python -m ru_jailbreak_guard.data.benign
+      --output data/raw/benign.parquet
+      --n-samples ${benign.n_samples}
+      --seed ${seed}
+    params:
+      - benign.n_samples
+      - seed
+    outs:
+      - data/raw/benign.parquet
+
+  generate_attacks:
+    cmd: >
+      uv run python -m ru_jailbreak_guard.data.attack_gen
+      --seeds-input data/raw/dmtrdr.parquet
+      --output data/raw/attacks.parquet
+      --categories ${hivetracered.categories}
+    deps:
+      - data/raw/dmtrdr.parquet
+    params:
+      - hivetracered.categories
+    outs:
+      - data/raw/attacks.parquet
+
+  merge:
+    cmd: >
+      uv run python -m ru_jailbreak_guard.data.merge
+      --inputs data/raw/dmtrdr.parquet data/raw/hivetrace_sysprompt.parquet data/raw/wildguardmix_ru.parquet data/raw/benign.parquet data/raw/attacks.parquet
+      --output data/merged/all.parquet
+      --target-ratio ${merge.target_ratio}
+      --jaccard-threshold ${merge.jaccard_threshold}
+      --seed ${seed}
+    deps:
+      - data/raw/dmtrdr.parquet
+      - data/raw/hivetrace_sysprompt.parquet
+      - data/raw/wildguardmix_ru.parquet
+      - data/raw/benign.parquet
+      - data/raw/attacks.parquet
+    params:
+      - merge.target_ratio
+      - merge.jaccard_threshold
+      - seed
+    outs:
+      - data/merged/all.parquet
+
+  split:
+    cmd: >
+      uv run python -m ru_jailbreak_guard.data.split
+      --input data/merged/all.parquet
+      --out-train data/splits/train.parquet
+      --out-val data/splits/val.parquet
+      --out-test data/splits/test.parquet
+      --ratios ${split.ratios}
+      --seed ${seed}
+    deps:
+      - data/merged/all.parquet
+    params:
+      - split.ratios
+      - seed
+    outs:
+      - data/splits/train.parquet
+      - data/splits/val.parquet
+      - data/splits/test.parquet
+
+  profile:
+    cmd: >
+      uv run python -m ru_jailbreak_guard.data.profile
+      --input data/merged/all.parquet
+      --output reports/data_profile.html
+    deps:
+      - data/merged/all.parquet
+    outs:
+      - reports/data_profile.html
