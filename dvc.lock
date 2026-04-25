@@ -1,0 +1,132 @@
+schema: '2.0'
+stages:
+  fetch_hivetrace_sysprompt:
+    cmd: uv run python -m ru_jailbreak_guard.data.hivetrace_red --output 
+      data/raw/hivetrace_sysprompt.parquet
+    outs:
+    - path: data/raw/hivetrace_sysprompt.parquet
+      hash: md5
+      md5: 0ba04901163836ed13fc700d72003b11
+      size: 6281
+  fetch_dmtrdr:
+    cmd: uv run python -m ru_jailbreak_guard.data.dmtrdr --output 
+      data/raw/dmtrdr.parquet
+    params:
+      params.yaml:
+        dmtrdr.revision:
+    outs:
+    - path: data/raw/dmtrdr.parquet
+      hash: md5
+      md5: 69a67c815a69de80dd3338aebba5fb7a
+      size: 5420219
+  fetch_wildguardmix:
+    cmd: uv run python -m ru_jailbreak_guard.data.wildguardmix --output 
+      data/raw/wildguardmix_ru.parquet
+    outs:
+    - path: data/raw/wildguardmix_ru.parquet
+      hash: md5
+      md5: d388e75f31bc1497ba891bd4b920d521
+      size: 760
+  fetch_benign:
+    cmd: "uv run python -m ru_jailbreak_guard.data.benign --output data/raw/benign.parquet
+      --n-samples 1000 --seed 42\n"
+    params:
+      params.yaml:
+        benign.n_samples: 1000
+        seed: 42
+    outs:
+    - path: data/raw/benign.parquet
+      hash: md5
+      md5: 5afd281ba307ea1d5a38a7b8e02d66fe
+      size: 120274
+  generate_attacks:
+    cmd: "uv run python -m ru_jailbreak_guard.data.attack_gen --seeds-input data/raw/dmtrdr.parquet
+      --output data/raw/attacks.parquet --categories roleplay\n"
+    deps:
+    - path: data/raw/dmtrdr.parquet
+      hash: md5
+      md5: 69a67c815a69de80dd3338aebba5fb7a
+      size: 5420219
+    params:
+      params.yaml:
+        hivetracered.categories: roleplay
+    outs:
+    - path: data/raw/attacks.parquet
+      hash: md5
+      md5: be1f71f11f8232e8dac0e50415e1d83d
+      size: 9047934
+  merge:
+    cmd: "uv run python -m ru_jailbreak_guard.data.merge --inputs data/raw/dmtrdr.parquet
+      data/raw/hivetrace_sysprompt.parquet data/raw/wildguardmix_ru.parquet data/raw/benign.parquet
+      data/raw/attacks.parquet --output data/merged/all.parquet --target-ratio 0.5
+      --jaccard-threshold 0.85 --seed 42\n"
+    deps:
+    - path: data/raw/attacks.parquet
+      hash: md5
+      md5: be1f71f11f8232e8dac0e50415e1d83d
+      size: 9047934
+    - path: data/raw/benign.parquet
+      hash: md5
+      md5: 5afd281ba307ea1d5a38a7b8e02d66fe
+      size: 120274
+    - path: data/raw/dmtrdr.parquet
+      hash: md5
+      md5: 69a67c815a69de80dd3338aebba5fb7a
+      size: 5420219
+    - path: data/raw/hivetrace_sysprompt.parquet
+      hash: md5
+      md5: 0ba04901163836ed13fc700d72003b11
+      size: 6281
+    - path: data/raw/wildguardmix_ru.parquet
+      hash: md5
+      md5: d388e75f31bc1497ba891bd4b920d521
+      size: 760
+    params:
+      params.yaml:
+        merge.jaccard_threshold: 0.85
+        merge.target_ratio: 0.5
+        seed: 42
+    outs:
+    - path: data/merged/all.parquet
+      hash: md5
+      md5: 971ffad95c4f2a255053b349cc718502
+      size: 641831
+  split:
+    cmd: "uv run python -m ru_jailbreak_guard.data.split --input data/merged/all.parquet
+      --out-train data/splits/train.parquet --out-val data/splits/val.parquet --out-test
+      data/splits/test.parquet --ratios 0.7 0.15 0.15 --seed 42\n"
+    deps:
+    - path: data/merged/all.parquet
+      hash: md5
+      md5: 971ffad95c4f2a255053b349cc718502
+      size: 641831
+    params:
+      params.yaml:
+        seed: 42
+        split.ratios: 0.7 0.15 0.15
+    outs:
+    - path: data/splits/test.parquet
+      hash: md5
+      md5: 0d1af3861e90b9e97a8477265b7938b5
+      size: 116294
+    - path: data/splits/train.parquet
+      hash: md5
+      md5: 061137d6b878520569b7de17dc392caf
+      size: 446426
+    - path: data/splits/val.parquet
+      hash: md5
+      md5: 08076d2c0392bfd1d6c3de60f5fd4d2f
+      size: 124942
+  profile:
+    cmd: "uv run python -m ru_jailbreak_guard.data.profile --input data/merged/all.parquet
+      --output reports/data_profile.html\n"
+    deps:
+    - path: data/merged/all.parquet
+      hash: md5
+      md5: 971ffad95c4f2a255053b349cc718502
+      size: 641831
+    outs:
+    - path: reports/data_profile.html
+      hash: md5
+      md5: 55619032c155436ecc989fbf6add02c6
+      size: 16021

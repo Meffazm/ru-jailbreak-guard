@@ -1,0 +1,6 @@
+[core]
+    remote = local
+['remote "local"']
+    url = /Users/meffa/dvc-remote/ru-jailbreak-guard
+['remote "s3"']
+    url = s3://ru-jailbreak-guard-cloud/dvc

@@ -8,7 +8,14 @@ authors = [
 requires-python = ">=3.13"
 readme = "README.md"
 license = {text = "MIT"}
-dependencies = []
+dependencies = [
+    "polars==1.40.1",
+    "pyarrow==24.0.0",
+    "datasets==4.8.4",
+    "huggingface_hub==1.12.0",
+    "datasketch==1.10.0",
+    "dvc[s3]==3.67.1",
+]
 
 [project.urls]
 Repository = "https://github.com/Meffazm/ru-jailbreak-guard"
@@ -22,10 +29,10 @@ packages = ["src/ru_jailbreak_guard"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.8.0",
-    "ty>=0.0.1a0",
-    "pytest>=8.0.0",
-    "pytest-cov>=5.0.0",
+    "ruff==0.15.12",
+    "ty==0.0.32",
+    "pytest==9.0.3",
+    "pytest-cov==7.1.0",
 ]
 
 [tool.pytest.ini_options]

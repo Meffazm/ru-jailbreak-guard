@@ -94,11 +94,13 @@ models/
 checkpoints/
 
 # Data (track via DVC / S3, not git)
-data/
+/data/
+reports/
 *.csv
 *.parquet
 *.tsv
 *.jsonl
+!tests/fixtures/**
 
 # Logs
 *.log
