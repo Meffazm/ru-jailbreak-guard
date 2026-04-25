@@ -54,9 +54,7 @@ def stratified_split(
     )
     df_with_bucket = df_with_grp.with_columns(
         (
-            pl.col("_grp").map_elements(
-                lambda h: int(h, 16) % 10000, return_dtype=pl.Int64
-            )
+            pl.col("_grp").map_elements(lambda h: int(h, 16) % 10000, return_dtype=pl.Int64)
             / 10000.0
         ).alias("_bucket")
     )
@@ -66,9 +64,7 @@ def stratified_split(
     val = df_with_bucket.filter(
         (pl.col("_bucket") >= train_p) & (pl.col("_bucket") < train_p + val_p)
     ).drop(["_grp", "_bucket"])
-    test = df_with_bucket.filter(pl.col("_bucket") >= train_p + val_p).drop(
-        ["_grp", "_bucket"]
-    )
+    test = df_with_bucket.filter(pl.col("_bucket") >= train_p + val_p).drop(["_grp", "_bucket"])
 
     for d in (train, val, test):
         validate_schema(d)

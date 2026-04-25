@@ -37,9 +37,7 @@ def test_parse_filters_non_russian_rows(tmp_path: Path) -> None:
     """Rows with language != ru must be dropped."""
     f = tmp_path / "mixed.csv"
     f.write_text(
-        "prompt,category,language,subcategory\n"
-        "russian text,X,ru,Y\n"
-        "english text,X,en,Y\n",
+        "prompt,category,language,subcategory\nrussian text,X,ru,Y\nenglish text,X,en,Y\n",
         encoding="utf-8",
     )
     df = parse_hivetrace_csv(f)

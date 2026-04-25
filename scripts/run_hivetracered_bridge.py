@@ -67,8 +67,7 @@ def generate_variants(
                 result = instance.apply(seed)
             except Exception as exc:
                 print(
-                    f"WARN: attack {attack_name} failed on seed: "
-                    f"{type(exc).__name__}: {exc}",
+                    f"WARN: attack {attack_name} failed on seed: {type(exc).__name__}: {exc}",
                     file=sys.stderr,
                 )
                 continue
