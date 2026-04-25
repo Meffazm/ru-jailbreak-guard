@@ -94,7 +94,7 @@ models/
 checkpoints/
 
 # Data (track via DVC / S3, not git)
-data/
+/data/
 reports/
 *.csv
 *.parquet
