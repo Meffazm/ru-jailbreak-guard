@@ -109,3 +109,28 @@ logs/
 solutions/
 INSTRUCTIONS.md
 EXPLANATIONS.md
+
+# AI assistant artifacts — NEVER push to remote
+# Claude Code
+CLAUDE.md
+.claude/
+.claudeignore
+.claude.json
+# Cursor
+.cursor/
+.cursorrules
+.cursorignore
+# Aider
+.aider*
+.aider/
+# Continue.dev
+.continue/
+# Copilot configs (local)
+.github/copilot-instructions.md
+# AI-generated planning/design docs
+docs/superpowers/
+docs/claude/
+docs/ai/
+**/*.claude.md
+**/*.ai.md
+**/*.superpowers.md
