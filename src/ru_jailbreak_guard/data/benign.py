@@ -11,7 +11,7 @@ from pathlib import Path
 import polars as pl
 
 from ru_jailbreak_guard.data.filters import is_russian_text, text_length_ok
-from ru_jailbreak_guard.data.schema import CANONICAL_SCHEMA, validate_schema
+from ru_jailbreak_guard.data.schema import CANONICAL_SCHEMA, empty_canonical_df, validate_schema
 
 DEFAULT_SOURCE = "benign_wiki"
 HF_WIKIPEDIA_ID = "wikimedia/wikipedia"
@@ -49,7 +49,7 @@ def parse_benign_text_lines(
         and is_russian_text(line.strip(), min_cyrillic_ratio)
     ]
     if not kept:
-        return pl.DataFrame(schema=CANONICAL_SCHEMA)
+        return empty_canonical_df()
 
     df = pl.DataFrame(
         {
@@ -58,7 +58,8 @@ def parse_benign_text_lines(
             "source": [source] * len(kept),
             "subcategory": [None] * len(kept),
             "lang": ["ru"] * len(kept),
-            "meta": [{} for _ in kept],
+            # Polars Struct({}) cannot be serialised to Parquet; populate one field.
+            "meta": [{"orig_source": source} for _ in kept],
         },
         schema={**CANONICAL_SCHEMA, "meta": pl.Struct},
     )

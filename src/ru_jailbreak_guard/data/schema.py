@@ -18,6 +18,20 @@ CANONICAL_SCHEMA: dict[str, pl.DataType | type[pl.DataType]] = {
     "meta": pl.Struct({}),
 }
 
+# Polars cannot serialise an empty Struct{} to Parquet ("struct type with no
+# child field"). For the empty-DataFrame case we use a one-field placeholder
+# struct so the file can round-trip; concat with non-empty meta structs uses
+# vertical_relaxed in the merge stage and tolerates the schema widening.
+EMPTY_PARQUET_SCHEMA: dict[str, pl.DataType | type[pl.DataType]] = {
+    **CANONICAL_SCHEMA,
+    "meta": pl.Struct({"_placeholder": pl.String}),
+}
+
+
+def empty_canonical_df() -> pl.DataFrame:
+    """Return a 0-row DataFrame conforming to CANONICAL_SCHEMA, safe to write to Parquet."""
+    return pl.DataFrame(schema=EMPTY_PARQUET_SCHEMA)
+
 
 def validate_schema(df: pl.DataFrame) -> None:
     """Raise ValueError if df does not conform to CANONICAL_SCHEMA.

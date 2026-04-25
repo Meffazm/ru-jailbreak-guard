@@ -10,7 +10,7 @@ from pathlib import Path
 
 import polars as pl
 
-from ru_jailbreak_guard.data.schema import CANONICAL_SCHEMA, validate_schema
+from ru_jailbreak_guard.data.schema import CANONICAL_SCHEMA, empty_canonical_df, validate_schema
 
 SOURCE_NAME = "wildguardmix_ru"
 HF_DATASET_ID = "allenai/wildguardmix"
@@ -28,7 +28,7 @@ def parse_wildguardmix_parquet(parquet_path: Path) -> pl.DataFrame:
     """
     raw = pl.read_parquet(parquet_path).filter(pl.col("lang") == "ru")
     if raw.height == 0:
-        return pl.DataFrame(schema=CANONICAL_SCHEMA)
+        return empty_canonical_df()
 
     df = pl.DataFrame(
         {
@@ -37,7 +37,8 @@ def parse_wildguardmix_parquet(parquet_path: Path) -> pl.DataFrame:
             "source": [SOURCE_NAME] * raw.height,
             "subcategory": raw["prompt_harm_category"].to_list(),
             "lang": ["ru"] * raw.height,
-            "meta": [{} for _ in range(raw.height)],
+            # Polars Struct({}) cannot be serialised to Parquet; populate one field.
+            "meta": [{"orig_source": HF_DATASET_ID} for _ in range(raw.height)],
         },
         schema={**CANONICAL_SCHEMA, "meta": pl.Struct},
     )
@@ -49,17 +50,36 @@ def parse_wildguardmix_parquet(parquet_path: Path) -> pl.DataFrame:
 def fetch_and_save(output_path: Path, revision: str | None = None) -> int:
     """Download WildGuardMix from HF and write Russian-only canonical parquet.
 
+    The dataset is gated on HuggingFace; access requires HF_TOKEN with approved
+    license terms. When unauthenticated, this emits an empty canonical-schema
+    parquet and prints a warning so the pipeline can still complete (treats
+    WildGuardMix as an optional contributor rather than a hard dependency).
+
     Args:
         output_path: Destination .parquet file.
         revision: Optional HF dataset revision SHA.
 
     Returns:
-        Number of Russian rows written.
+        Number of Russian rows written (0 if unauthenticated).
     """
-    from datasets import load_dataset
+    import sys
 
-    ds = load_dataset(HF_DATASET_ID, "wildguardtest", split="test", revision=revision)
+    from datasets import load_dataset
+    from datasets.exceptions import DatasetNotFoundError
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        ds = load_dataset(HF_DATASET_ID, "wildguardtest", split="test", revision=revision)
+    except (DatasetNotFoundError, PermissionError) as exc:
+        print(
+            f"WARN: WildGuardMix is gated and not accessible ({type(exc).__name__}: {exc}). "
+            "Emitting empty parquet. Set HF_TOKEN and accept the dataset terms to enable.",
+            file=sys.stderr,
+        )
+        empty = empty_canonical_df()
+        empty.write_parquet(output_path)
+        return 0
+
     tmp_parquet = output_path.with_suffix(".raw.parquet")
     ds.to_parquet(str(tmp_parquet))
     df = parse_wildguardmix_parquet(tmp_parquet)
