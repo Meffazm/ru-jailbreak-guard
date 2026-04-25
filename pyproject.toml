@@ -32,6 +32,3 @@ dev = [
 testpaths = ["tests"]
 addopts = "-q --strict-markers --strict-config"
 pythonpath = ["src"]
-
-[tool.ty]
-# default config; per-rule tuning later if needed
