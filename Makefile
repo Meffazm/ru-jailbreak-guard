@@ -1,4 +1,7 @@
-.PHONY: help setup lint format type-check test all clean local-up local-down argocd-ui
+SHELL := /bin/bash
+.SHELLFLAGS := -eu -o pipefail -c
+
+.PHONY: help setup lint format type-check test all clean argocd-ui
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -34,10 +37,13 @@ test:
 all: lint type-check test
 
 clean:
-	rm -rf .venv .ruff_cache .pytest_cache .ty_cache __pycache__
+	rm -rf .venv .ruff_cache .pytest_cache .ty_cache
 	find . -name __pycache__ -type d -exec rm -rf {} +
 
 argocd-ui:
 	@echo "ArgoCD UI: http://localhost:8080"
-	@echo "Login: admin / (run 'kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=\"{.data.password}\" | base64 -d')"
+	@echo "Login: admin"
+	@echo "Password (run separately):"
+	@echo "  kubectl -n argocd get secret argocd-initial-admin-secret \\"
+	@echo "    -o jsonpath='{.data.password}' | base64 -d"
 	kubectl -n argocd port-forward svc/argocd-server 8080:443
