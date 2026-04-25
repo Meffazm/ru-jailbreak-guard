@@ -37,5 +37,10 @@ def validate_schema(df: pl.DataFrame) -> None:
         raise ValueError(f"missing columns: {sorted(missing)}")
     for column, expected in CANONICAL_SCHEMA.items():
         actual = df.schema[column]
+        if column == "meta":
+            # meta is allowed to be any Struct; sources may put any fields in it.
+            if not isinstance(actual, pl.Struct):
+                raise ValueError(f"meta must be a Struct, got {actual}")
+            continue
         if actual != expected:
             raise ValueError(f"{column} must be {expected}, got {actual}")
