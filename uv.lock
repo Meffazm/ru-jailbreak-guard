@@ -2022,10 +2022,10 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pytest", specifier = ">=8.0.0" },
-    { name = "pytest-cov", specifier = ">=5.0.0" },
-    { name = "ruff", specifier = ">=0.8.0" },
-    { name = "ty", specifier = ">=0.0.1a0" },
+    { name = "pytest", specifier = "==9.0.3" },
+    { name = "pytest-cov", specifier = "==7.1.0" },
+    { name = "ruff", specifier = "==0.15.12" },
+    { name = "ty", specifier = "==0.0.32" },
 ]
 
 [[package]]
