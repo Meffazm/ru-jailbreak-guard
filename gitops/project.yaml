@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ru-jailbreak-guard
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: ru-jailbreak-guard project (final OTUS MLOps project)
+  sourceRepos:
+    - https://github.com/Meffazm/ru-jailbreak-guard
+    - https://github.com/Meffazm/ru-jailbreak-guard.git
+  destinations:
+    - namespace: '*'
+      server: '*'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
