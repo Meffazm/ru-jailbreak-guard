@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+data:
+  init.sql: |
+    CREATE USER mlflow WITH PASSWORD 'mlflow';
+    CREATE DATABASE mlflow OWNER mlflow;
+    CREATE USER flyte WITH PASSWORD 'flyte';
+    CREATE DATABASE flyte OWNER flyte;
