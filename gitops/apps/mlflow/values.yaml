@@ -1,31 +1,53 @@
 mlflow:
-  backendStore:
-    postgres:
-      enabled: true
-      host: postgres-postgresql.postgres.svc.cluster.local
-      port: 5432
-      database: mlflow
-      user: mlflow
+  global:
+    security:
+      allowInsecureImages: true
+  tracking:
+    enabled: true
+    replicaCount: 1
+    auth:
+      enabled: false
+    service:
+      type: ClusterIP
+      ports:
+        http: 5000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+  run:
+    enabled: false
+  postgresql:
+    enabled: true
+    auth:
+      username: mlflow
       password: mlflow
-  artifactRoot:
-    s3:
-      enabled: true
-      bucket: mlflow
-      path: ""
-      awsAccessKeyId: minioadmin
-      awsSecretAccessKey: minioadmin
-  extraEnvVars:
-    - name: MLFLOW_S3_ENDPOINT_URL
-      value: http://minio.minio.svc.cluster.local:9000
-    - name: AWS_DEFAULT_REGION
-      value: us-east-1
-  service:
-    type: ClusterIP
-    port: 5000
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 1
-      memory: 1Gi
+      database: mlflow
+    primary:
+      persistence:
+        size: 4Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1
+          memory: 1Gi
+  minio:
+    enabled: true
+    auth:
+      rootUser: minioadmin
+      rootPassword: minioadmin
+    defaultBuckets: "mlflow"
+    persistence:
+      size: 8Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1Gi

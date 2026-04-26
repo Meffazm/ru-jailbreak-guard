@@ -1,8 +1,8 @@
 apiVersion: v2
 name: mlflow-app
-version: 0.1.0
-description: MLflow tracking server backed by Postgres + MinIO
+version: 0.2.0
+description: Bitnami MLflow with bundled Postgres + MinIO
 dependencies:
   - name: mlflow
-    version: 0.10.0
-    repository: https://community-charts.github.io/helm-charts
+    version: 5.1.17
+    repository: oci://registry-1.docker.io/bitnamicharts
