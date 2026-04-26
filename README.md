@@ -42,8 +42,8 @@ MLOps-цикла.
 ## Релизы
 
 - ✅ `v0.1.0` — Phase 0: bootstrap (Python skeleton, CI, ArgoCD locally)
-- 🚧 `v0.2.0` — Phase 1: data pipeline (DVC + HiveTrace sources)
-- `v0.3.0` — Phase 2: TF-IDF + LightGBM models live (KServe)
+- ✅ `v0.2.0` — Phase 1: data pipeline (DVC + HiveTrace sources)
+- 🚧 `v0.3.0` — Phase 2: TF-IDF + LightGBM models live (KServe)
 - `v0.4.0` — Phase 3: fine-tuned ruBERT model live
 - `v0.5.0` — Phase 4: Streamlit multi-model UI
 - `v0.6.0` — Phase 5: Flyte orchestration + cron retraining
@@ -82,10 +82,22 @@ ru-jailbreak-guard/
 └── Makefile
 ```
 
+## Phase 2 — Cheap models served via KServe
+
+- TF-IDF + Logistic Regression classifier
+- LightGBM on ruBERT-tiny2 mean-pooled embeddings
+- MLflow tracking + registry (Postgres + MinIO via Helm/ArgoCD)
+- Two KServe RawDeployment InferenceServices, deployed via the existing ArgoCD ApplicationSet
+- Custom FastAPI predictors with a locked response schema across families
+- Multi-arch image builds (amd64 + arm64) pushed to GHCR
+
+См. [docs/runbooks/phase-2-end-to-end-smoke.md](docs/runbooks/phase-2-end-to-end-smoke.md) для пошагового локального прогона.
+
 ## Документация
 
 - [docs/local-setup.md](docs/local-setup.md) —
   установка локального окружения
+- [docs/runbooks/](docs/runbooks/) — operational runbooks
 - [docs/adr/](docs/adr/) — архитектурные решения
 
 ## Лицензия
