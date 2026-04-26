@@ -37,6 +37,7 @@ spec:
       containers:
         - name: minio
           image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+          imagePullPolicy: IfNotPresent
           args: [server, /data, --console-address, ":9001"]
           ports:
             - containerPort: 9000
@@ -100,7 +101,8 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: mc
-          image: quay.io/minio/mc:RELEASE.2025-09-07T16-04-46Z
+          image: quay.io/minio/mc:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef: { name: minio-credentials }
           command:
