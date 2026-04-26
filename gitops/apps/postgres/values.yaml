@@ -1,0 +1,16 @@
+postgresql:
+  auth:
+    postgresPassword: postgres
+    database: postgres
+  primary:
+    persistence:
+      size: 4Gi
+    initdb:
+      scriptsConfigMap: postgres-initdb
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1Gi

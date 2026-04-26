@@ -5,16 +5,29 @@ description = "Russian-language jailbreak detection service"
 authors = [
     {name = "Dmitrii Velibekov", email = "meridict@gmail.com"},
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [
     "polars==1.40.1",
-    "pyarrow==24.0.0",
-    "datasets==4.8.4",
-    "huggingface_hub==1.12.0",
+    "pyarrow==19.0.0",
+    "datasets==3.6.0",
+    "huggingface_hub==0.24.0",
     "datasketch==1.10.0",
     "dvc[s3]==3.67.1",
+    # Phase 2 — modeling
+    "scikit-learn==1.7.2",
+    "lightgbm==4.6.0",
+    "transformers==4.48.2",
+    "torch==2.6.0",
+    "joblib==1.5.2",
+    "matplotlib==3.10.0",
+    # Phase 2 — MLflow client + serving
+    "mlflow==2.20.4",
+    "boto3==1.39.5",
+    "fastapi==0.118.0",
+    "uvicorn[standard]==0.36.0",
+    "pydantic==2.10.5",
 ]
 
 [project.urls]
@@ -33,11 +46,13 @@ dev = [
     "ty==0.0.32",
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
+    "httpx==0.28.1",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers --strict-config"
+addopts = "-q --strict-markers --strict-config -m 'not slow'"
+markers = ["slow: marks tests that download or run real models"]
 pythonpath = ["src"]
 
 [tool.pyright]

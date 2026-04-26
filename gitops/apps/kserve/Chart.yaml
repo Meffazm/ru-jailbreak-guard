@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kserve-app
+version: 0.1.0
+description: Wrapper for KServe in RawDeployment mode (no Knative, no Istio)
+dependencies:
+  - name: kserve-crd
+    version: 0.14.0
+    repository: oci://ghcr.io/kserve/charts
+  - name: kserve
+    version: 0.14.0
+    repository: oci://ghcr.io/kserve/charts

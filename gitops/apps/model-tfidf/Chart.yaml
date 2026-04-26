@@ -1,0 +1,4 @@
+apiVersion: v2
+name: model-tfidf
+version: 0.1.0
+description: KServe InferenceService for TF-IDF + LogReg

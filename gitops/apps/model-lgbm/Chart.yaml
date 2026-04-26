@@ -1,0 +1,4 @@
+apiVersion: v2
+name: model-lgbm
+version: 0.1.0
+description: KServe InferenceService for LightGBM on ruBERT-emb

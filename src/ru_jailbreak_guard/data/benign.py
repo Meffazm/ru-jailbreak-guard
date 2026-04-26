@@ -85,9 +85,10 @@ def fetch_and_save_wikipedia(
     Returns:
         Number of rows written (may be slightly less than n_samples after filters).
     """
-    from datasets import load_dataset
+    from datasets import Dataset, load_dataset
 
     ds = load_dataset(HF_WIKIPEDIA_ID, WIKIPEDIA_RU_CONFIG, split="train", revision=revision)
+    assert isinstance(ds, Dataset), f"expected Dataset, got {type(ds).__name__}"
     sampled = ds.shuffle(seed=seed).select(range(min(n_samples * 4, len(ds))))
     lines: list[str] = []
     for row in sampled:

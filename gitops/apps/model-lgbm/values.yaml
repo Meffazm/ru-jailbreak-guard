@@ -1,0 +1,20 @@
+image:
+  repository: ghcr.io/meffazm/ru-jailbreak-guard/predictor-lgbm
+  tag: sha-PLACEHOLDER
+  pullPolicy: IfNotPresent
+modelVersion: "1"
+mlflowTrackingUri: http://mlflow.mlflow.svc.cluster.local:5000
+mlflowS3Endpoint: http://minio.minio.svc.cluster.local:9000
+awsRegion: us-east-1
+modelName: ru-jailbreak-lgbm-emb
+embeddingModelName: cointegrated/rubert-tiny2
+replicas:
+  min: 1
+  max: 3
+resources:
+  requests:
+    cpu: 200m
+    memory: 1Gi
+  limits:
+    cpu: 1
+    memory: 2Gi

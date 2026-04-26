@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio train-tfidf train-lgbm
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -17,7 +17,13 @@ help:
 	@echo "  make all          — lint + type-check + test"
 	@echo ""
 	@echo "Local k8s:"
-	@echo "  make argocd-ui    — port-forward ArgoCD UI to localhost:8080"
+	@echo "  make argocd-ui            — port-forward ArgoCD UI to localhost:8080"
+	@echo "  make port-forward-mlflow  — port-forward MLflow UI to localhost:5000"
+	@echo "  make port-forward-minio   — port-forward MinIO console to localhost:9001"
+	@echo ""
+	@echo "Training (run with port-forwards active):"
+	@echo "  make train-tfidf  — train TF-IDF + LogReg, log to MLflow, register"
+	@echo "  make train-lgbm   — train LightGBM on ruBERT-emb, log to MLflow, register"
 
 setup:
 	uv sync
@@ -47,3 +53,30 @@ argocd-ui:
 	@echo "  kubectl -n argocd get secret argocd-initial-admin-secret \\"
 	@echo "    -o jsonpath='{.data.password}' | base64 -d"
 	kubectl -n argocd port-forward svc/argocd-server 8080:443
+
+port-forward-mlflow:
+	@echo "MLflow UI: http://localhost:5000"
+	kubectl -n mlflow port-forward svc/mlflow 5000:5000
+
+port-forward-minio:
+	@echo "MinIO console: http://localhost:9001  (login: minioadmin/minioadmin)"
+	kubectl -n minio port-forward svc/minio 9001:9001
+
+train-tfidf:
+	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python -m ru_jailbreak_guard.models.tfidf_logreg \
+	  --mlflow-uri http://localhost:5000 \
+	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
+
+# OMP_NUM_THREADS=1 + KMP_DUPLICATE_LIB_OK=TRUE work around an OpenMP conflict
+# between PyTorch and LightGBM on macOS (segfault otherwise).
+train-lgbm:
+	OMP_NUM_THREADS=1 KMP_DUPLICATE_LIB_OK=TRUE \
+	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python -m ru_jailbreak_guard.models.lgbm_emb \
+	  --mlflow-uri http://localhost:5000 \
+	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
