@@ -49,7 +49,8 @@ jobs:
         id: tags
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          IMAGE=ghcr.io/${{ github.repository_owner }}/ru-jailbreak-guard/predictor-${{ matrix.family.name }}
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE=ghcr.io/${OWNER_LC}/ru-jailbreak-guard/predictor-${{ matrix.family.name }}
           TAGS="$IMAGE:sha-$SHORT_SHA"
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
