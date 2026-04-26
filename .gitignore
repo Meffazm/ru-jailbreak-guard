@@ -90,7 +90,7 @@ mlartifacts/
 *.pth
 *.onnx
 *.h5
-models/
+/models/
 checkpoints/
 
 # Data (track via DVC / S3, not git)
