@@ -1,0 +1,6 @@
+kserve:
+  kserve:
+    controller:
+      deploymentMode: RawDeployment
+    inferenceService:
+      defaultDeploymentMode: RawDeployment
