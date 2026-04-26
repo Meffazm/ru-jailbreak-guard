@@ -20,7 +20,7 @@ class TfidfWrapper:
         *,
         max_features: int = 50_000,
         ngram_range: tuple[int, int] = (1, 2),
-        min_df: int = 1,
+        min_df: int = 2,
         sublinear_tf: bool = True,
     ) -> None:
         self._vectorizer = TfidfVectorizer(

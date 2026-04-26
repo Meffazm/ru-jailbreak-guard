@@ -19,7 +19,8 @@ def test_fit_transform_produces_sparse_matrix() -> None:
 def test_transform_after_fit_uses_same_vocab() -> None:
     train = ["один два три", "четыре пять"]
     test = ["один два", "новый текст"]
-    wrap = TfidfWrapper(max_features=10)
+    # min_df=1 so the 2-doc fixture vocabulary survives pruning.
+    wrap = TfidfWrapper(max_features=10, min_df=1)
     wrap.fit_transform(train)
     matrix_test = wrap.transform(test)
     assert matrix_test.shape[0] == 2
