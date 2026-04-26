@@ -25,12 +25,13 @@ spec:
     spec:
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:v2.20.4
+          image: ghcr.io/mlflow/mlflow:latest
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c
             - |
-              pip install --quiet psycopg2-binary boto3
+              pip install --quiet --root-user-action=ignore psycopg2-binary boto3
               exec mlflow server \
                 --host 0.0.0.0 \
                 --port 5000 \
