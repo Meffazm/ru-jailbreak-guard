@@ -70,7 +70,10 @@ train-tfidf:
 	  --mlflow-uri http://localhost:5000 \
 	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
 
+# OMP_NUM_THREADS=1 + KMP_DUPLICATE_LIB_OK=TRUE work around an OpenMP conflict
+# between PyTorch and LightGBM on macOS (segfault otherwise).
 train-lgbm:
+	OMP_NUM_THREADS=1 KMP_DUPLICATE_LIB_OK=TRUE \
 	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
 	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
 	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \

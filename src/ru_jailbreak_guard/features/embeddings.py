@@ -7,6 +7,7 @@ embeddings across runs with the same data version.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Protocol
 
@@ -72,7 +73,10 @@ class EmbeddingCache:
         self.root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
-        return self.root / f"{key}.npy"
+        # Sanitize: replace path separators so model names like
+        # `cointegrated/rubert-tiny2` don't create directory components.
+        safe = key.replace("/", "_").replace(os.sep, "_")
+        return self.root / f"{safe}.npy"
 
     def get(self, *, key: str) -> np.ndarray | None:
         path = self._path(key)
