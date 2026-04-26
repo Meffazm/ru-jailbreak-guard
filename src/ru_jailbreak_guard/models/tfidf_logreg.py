@@ -76,9 +76,7 @@ def train_tfidf_logreg(*, cfg: TrainConfig) -> dict[str, Any]:
     x_val = tfidf.transform(val_texts)
     x_test = tfidf.transform(test_texts)
 
-    model = LogisticRegression(
-        C=cfg.C, max_iter=cfg.max_iter, random_state=cfg.seed, n_jobs=1
-    )
+    model = LogisticRegression(C=cfg.C, max_iter=cfg.max_iter, random_state=cfg.seed, n_jobs=1)
     model.fit(x_train, y_train)
 
     val_pred = model.predict(x_val)
@@ -178,9 +176,7 @@ def main() -> None:
     parser.add_argument("--train", type=Path, default=Path("data/splits/train.parquet"))
     parser.add_argument("--val", type=Path, default=Path("data/splits/val.parquet"))
     parser.add_argument("--test", type=Path, default=Path("data/splits/test.parquet"))
-    parser.add_argument(
-        "--artifacts", type=Path, default=Path("data/artifacts/tfidf_logreg")
-    )
+    parser.add_argument("--artifacts", type=Path, default=Path("data/artifacts/tfidf_logreg"))
     parser.add_argument("--params", type=Path, default=Path("params.yaml"))
     parser.add_argument("--mlflow-uri", type=str, default=None)
     parser.add_argument("--data-version", type=str, default="unknown")
