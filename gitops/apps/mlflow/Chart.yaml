@@ -1,8 +1,0 @@
-apiVersion: v2
-name: mlflow-app
-version: 0.2.0
-description: Bitnami MLflow with bundled Postgres + MinIO
-dependencies:
-  - name: mlflow
-    version: 5.1.17
-    repository: oci://registry-1.docker.io/bitnamicharts

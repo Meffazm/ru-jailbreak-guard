@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mlflow-secrets
+  namespace: mlflow
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: minioadmin
+  AWS_SECRET_ACCESS_KEY: minioadmin
+  POSTGRES_USER: mlflow
+  POSTGRES_PASSWORD: mlflow
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mlflow }
+  template:
+    metadata:
+      labels: { app: mlflow }
+    spec:
+      containers:
+        - name: mlflow
+          image: ghcr.io/mlflow/mlflow:v2.20.4
+          command:
+            - sh
+            - -c
+            - |
+              pip install --quiet psycopg2-binary boto3
+              exec mlflow server \
+                --host 0.0.0.0 \
+                --port 5000 \
+                --backend-store-uri "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres.postgres.svc.cluster.local:5432/mlflow" \
+                --default-artifact-root "s3://mlflow"
+          ports:
+            - containerPort: 5000
+              name: http
+          envFrom:
+            - secretRef: { name: mlflow-secrets }
+          env:
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://minio.minio.svc.cluster.local:9000
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 90
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: mlflow
+spec:
+  selector: { app: mlflow }
+  ports:
+    - port: 5000
+      targetPort: 5000
