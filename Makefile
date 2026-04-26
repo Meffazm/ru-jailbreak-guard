@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio train-tfidf train-lgbm
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -20,6 +20,10 @@ help:
 	@echo "  make argocd-ui            — port-forward ArgoCD UI to localhost:8080"
 	@echo "  make port-forward-mlflow  — port-forward MLflow UI to localhost:5000"
 	@echo "  make port-forward-minio   — port-forward MinIO console to localhost:9001"
+	@echo ""
+	@echo "Training (run with port-forwards active):"
+	@echo "  make train-tfidf  — train TF-IDF + LogReg, log to MLflow, register"
+	@echo "  make train-lgbm   — train LightGBM on ruBERT-emb, log to MLflow, register"
 
 setup:
 	uv sync
@@ -57,3 +61,19 @@ port-forward-mlflow:
 port-forward-minio:
 	@echo "MinIO console: http://localhost:9001  (login: minioadmin/minioadmin)"
 	kubectl -n minio port-forward svc/minio 9001:9001
+
+train-tfidf:
+	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python -m ru_jailbreak_guard.models.tfidf_logreg \
+	  --mlflow-uri http://localhost:5000 \
+	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
+
+train-lgbm:
+	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python -m ru_jailbreak_guard.models.lgbm_emb \
+	  --mlflow-uri http://localhost:5000 \
+	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
