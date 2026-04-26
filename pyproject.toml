@@ -50,7 +50,8 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers --strict-config"
+addopts = "-q --strict-markers --strict-config -m 'not slow'"
+markers = ["slow: marks tests that download or run real models"]
 pythonpath = ["src"]
 
 [tool.pyright]
