@@ -5,4 +5,4 @@ description: MinIO S3-compatible object store
 dependencies:
   - name: minio
     version: 14.10.0
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts

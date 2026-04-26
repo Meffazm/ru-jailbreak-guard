@@ -12,8 +12,9 @@ spec:
     - https://github.com/Meffazm/ru-jailbreak-guard.git
     # Phase 2 — Helm chart repos for infra apps
     - https://charts.jetstack.io
-    - https://charts.bitnami.com/bitnami
     - https://community-charts.github.io/helm-charts
+    - oci://registry-1.docker.io/bitnamicharts
+    - ghcr.io/kserve/charts
     - oci://ghcr.io/kserve/charts
   destinations:
     - namespace: '*'
