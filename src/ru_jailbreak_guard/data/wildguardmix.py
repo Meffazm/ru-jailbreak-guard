@@ -64,7 +64,7 @@ def fetch_and_save(output_path: Path, revision: str | None = None) -> int:
     """
     import sys
 
-    from datasets import load_dataset
+    from datasets import Dataset, load_dataset
     from datasets.exceptions import DatasetNotFoundError
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,6 +80,7 @@ def fetch_and_save(output_path: Path, revision: str | None = None) -> int:
         empty.write_parquet(output_path)
         return 0
 
+    assert isinstance(ds, Dataset), f"expected Dataset, got {type(ds).__name__}"
     tmp_parquet = output_path.with_suffix(".raw.parquet")
     ds.to_parquet(str(tmp_parquet))
     df = parse_wildguardmix_parquet(tmp_parquet)
