@@ -21,7 +21,7 @@ class PredictRequest(BaseModel):
 class PredictionResponse(BaseModel):
     label: Literal["jailbreak", "benign"]
     confidence: float
-    model_family: Literal["tfidf_logreg", "lgbm_emb"]
+    model_family: Literal["tfidf_logreg", "lgbm_emb", "rubert_ft"]
     model_version: str
     data_version: str
     latency_ms: float
@@ -30,7 +30,7 @@ class PredictionResponse(BaseModel):
 class Predictor(ABC):
     """Subclasses must override `family`, `load`, and `_predict_one`."""
 
-    family: Literal["tfidf_logreg", "lgbm_emb"]
+    family: Literal["tfidf_logreg", "lgbm_emb", "rubert_ft"]
 
     def __init__(self, *, version: str, data_version: str) -> None:
         self.version = version

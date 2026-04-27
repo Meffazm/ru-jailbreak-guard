@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import joblib
 import lightgbm as lgb
 import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -125,5 +126,28 @@ def test_lgbm_emb_predictor_loads_from_local_files(tmp_path: Path) -> None:
     )
     predictor.load()
     label, conf = predictor._predict_one("any text")
+    assert label in ("jailbreak", "benign")
+    assert 0.0 <= conf <= 1.0
+
+
+@pytest.mark.slow
+def test_rubert_ft_predictor_loads_real_model(tmp_path: Path) -> None:
+    """Build a tiny ruBERT-tiny2 model + tokenizer dir on disk, point predictor at it."""
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+    from ru_jailbreak_guard.serve.rubert_ft_predictor import RubertFtPredictor
+
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+    tok = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny2")
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "cointegrated/rubert-tiny2", num_labels=2
+    )
+    tok.save_pretrained(model_dir)
+    model.save_pretrained(model_dir)
+
+    predictor = RubertFtPredictor.from_local(model_dir=model_dir, version="1", data_version="dv")
+    predictor.load()
+    label, conf = predictor._predict_one("привет мир")
     assert label in ("jailbreak", "benign")
     assert 0.0 <= conf <= 1.0

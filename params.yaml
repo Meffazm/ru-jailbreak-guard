@@ -27,6 +27,7 @@ mlflow:
   tracking_uri: "http://localhost:5000"  # default for local port-forwarded MLflow
   experiment_tfidf: "tfidf_logreg"
   experiment_lgbm: "lgbm_embeddings"
+  experiment_rubert: "rubert_ft"
 
 model_tfidf:
   max_features: 50000
@@ -42,6 +43,13 @@ model_lgbm:
   learning_rate: 0.05
   n_estimators: 200
   min_child_samples: 5
+
+model_rubert:
+  num_epochs: 3
+  batch_size: 16
+  learning_rate: 5.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
 
 embedding:
   model_name: "cointegrated/rubert-tiny2"

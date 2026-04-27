@@ -27,6 +27,8 @@ jobs:
             dockerfile: docker/predictor-tfidf.Dockerfile
           - name: lgbm
             dockerfile: docker/predictor-lgbm.Dockerfile
+          - name: rubert-ft
+            dockerfile: docker/predictor-rubert-ft.Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v6
