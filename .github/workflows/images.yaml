@@ -22,13 +22,15 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        family:
-          - name: tfidf
+        image:
+          - name: predictor-tfidf
             dockerfile: docker/predictor-tfidf.Dockerfile
-          - name: lgbm
+          - name: predictor-lgbm
             dockerfile: docker/predictor-lgbm.Dockerfile
-          - name: rubert-ft
+          - name: predictor-rubert-ft
             dockerfile: docker/predictor-rubert-ft.Dockerfile
+          - name: ui-streamlit
+            dockerfile: docker/ui-streamlit.Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -52,7 +54,7 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE=ghcr.io/${OWNER_LC}/ru-jailbreak-guard/predictor-${{ matrix.family.name }}
+          IMAGE=ghcr.io/${OWNER_LC}/ru-jailbreak-guard/${{ matrix.image.name }}
           TAGS="$IMAGE:sha-$SHORT_SHA"
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
@@ -64,7 +66,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.family.dockerfile }}
+          file: ${{ matrix.image.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=gha
