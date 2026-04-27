@@ -20,6 +20,7 @@ dependencies = [
     "lightgbm==4.6.0",
     "transformers==4.48.2",
     "torch==2.6.0",
+    "accelerate==1.10.1",
     "joblib==1.5.2",
     "matplotlib==3.10.0",
     # Phase 2 — MLflow client + serving
