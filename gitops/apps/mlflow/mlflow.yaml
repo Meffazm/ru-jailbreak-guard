@@ -32,11 +32,16 @@ spec:
             - -c
             - |
               pip install --quiet --root-user-action=ignore psycopg2-binary boto3
+              # --dev disables MLflow's host-header DNS-rebinding middleware,
+              # which otherwise blocks in-cluster DNS access (cluster.local FQDNs).
+              # Acceptable for local-first dev; cloud install will use a proper
+              # ingress with the right --allowed-hosts.
               exec mlflow server \
                 --host 0.0.0.0 \
                 --port 5000 \
                 --backend-store-uri "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres.postgres.svc.cluster.local:5432/mlflow" \
-                --default-artifact-root "s3://mlflow"
+                --default-artifact-root "s3://mlflow" \
+                --dev
           ports:
             - containerPort: 5000
               name: http
