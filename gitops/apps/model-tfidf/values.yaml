@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/meffazm/ru-jailbreak-guard/predictor-tfidf
-  tag: sha-PLACEHOLDER
+  tag: sha-febe9ff
   pullPolicy: IfNotPresent
 modelVersion: "1"
 mlflowTrackingUri: http://mlflow.mlflow.svc.cluster.local:5000
