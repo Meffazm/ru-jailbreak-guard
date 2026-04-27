@@ -1,8 +1,0 @@
-apiVersion: v2
-name: mlflow-app
-version: 0.1.0
-description: MLflow tracking server backed by Postgres + MinIO
-dependencies:
-  - name: mlflow
-    version: 0.10.0
-    repository: https://community-charts.github.io/helm-charts
