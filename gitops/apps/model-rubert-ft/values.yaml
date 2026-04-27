@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/meffazm/ru-jailbreak-guard/predictor-rubert-ft
-  tag: sha-PLACEHOLDER
+  tag: sha-958e74f
   pullPolicy: IfNotPresent
 modelVersion: "1"
 mlflowTrackingUri: http://mlflow.mlflow.svc.cluster.local:5000
