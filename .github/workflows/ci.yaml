@@ -41,7 +41,7 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Type check
-        run: uv run ty check src tests
+        run: uv run ty check src tests scripts
 
       - name: Run tests
         run: uv run pytest --cov=ru_jailbreak_guard --cov-report=term-missing
