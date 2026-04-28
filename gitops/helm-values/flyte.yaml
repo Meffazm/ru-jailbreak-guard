@@ -47,7 +47,9 @@ configuration:
 
 deployment:
   image:
-    repository: cr.flyte.org/flyteorg/flyte-binary
+    # cr.flyte.org redirects to GHCR but Docker Desktop's registry mirror
+    # can't follow the redirect (returns 401). Use the GHCR canonical name.
+    repository: ghcr.io/flyteorg/flyte-binary-release
     pullPolicy: IfNotPresent
   replicaCount: 1
   resources:

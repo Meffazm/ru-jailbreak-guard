@@ -433,7 +433,7 @@ spec:
               memory: 1Gi
       containers:
         - name: flyte
-          image: "cr.flyte.org/flyteorg/flyte-binary:v1.16.6"
+          image: "ghcr.io/flyteorg/flyte-binary-release:v1.16.6"
           imagePullPolicy: "IfNotPresent"
           args:
             - start
