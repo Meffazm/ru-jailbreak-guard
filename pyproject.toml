@@ -5,7 +5,7 @@ description = "Russian-language jailbreak detection service"
 authors = [
     {name = "Dmitrii Velibekov", email = "meridict@gmail.com"},
 ]
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.12,<3.14"
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [
