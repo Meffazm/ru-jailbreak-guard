@@ -19,7 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       matrix:
         image:
@@ -31,6 +31,8 @@ jobs:
             dockerfile: docker/predictor-rubert-ft.Dockerfile
           - name: ui-streamlit
             dockerfile: docker/ui-streamlit.Dockerfile
+          - name: trainer
+            dockerfile: docker/trainer.Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -69,6 +71,8 @@ jobs:
           file: ${{ matrix.image.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Scope cache per image so parallel matrix jobs don't race
+          # on the same GHA blob keys (corruption seen on the previous run).
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,scope=${{ matrix.image.name }},mode=max
           tags: ${{ steps.tags.outputs.tags }}

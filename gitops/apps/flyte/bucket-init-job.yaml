@@ -1,0 +1,35 @@
+# One-shot Job: create the flyte-meta bucket in MinIO.
+# Idempotent: mc mb --ignore-existing.
+# The `splits` bucket is owned by `scripts/publish_splits.py` (host-side),
+# which creates it on first call to `make publish-splits`.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flyte-bucket-init
+  namespace: flyte
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              # MinIO may not be ready when this PostSync hook fires (alphabetical
+              # app sync ordering: flyte before minio on a fresh bootstrap).
+              until mc alias set minio http://minio.minio.svc.cluster.local:9000 minioadmin minioadmin 2>/dev/null; do
+                echo "Waiting for MinIO..."
+                sleep 3
+              done
+              mc mb --ignore-existing minio/flyte-meta
+              mc ls minio/

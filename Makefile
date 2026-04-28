@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio train-tfidf train-lgbm train-rubert
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -36,7 +36,7 @@ format:
 	uv run ruff format .
 
 type-check:
-	uv run ty check src tests
+	uv run ty check src tests scripts flyte
 
 test:
 	uv run pytest
@@ -92,3 +92,34 @@ train-rubert:
 	uv run python -m ru_jailbreak_guard.models.rubert_ft \
 	  --mlflow-uri http://localhost:5000 \
 	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
+
+publish-splits:
+	@echo "Uploading data/splits/ to s3://splits/<data_version>/"
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python scripts/publish_splits.py --skip-existing
+
+# Compute current data_version from dvc.lock (sha256 of split stage out md5s, 12 chars).
+# Used by register-workflows + trigger-cheap.
+DATA_VERSION = $(shell uv run python -c "import yaml,hashlib; d=yaml.safe_load(open('dvc.lock')); s=d['stages']['split']; print(hashlib.sha256('|'.join(sorted(o['md5'] for o in s['outs'])).encode()).hexdigest()[:12])")
+SHA = $(shell git rev-parse --short HEAD)
+TRAINER_IMAGE = ghcr.io/meffazm/ru-jailbreak-guard/trainer:sha-$(SHA)
+
+register-workflows:
+	@if ! git diff --quiet HEAD --; then echo "WARNING: working tree dirty"; fi
+	@echo "Registering with data_version=$(DATA_VERSION) image=$(TRAINER_IMAGE)"
+	uv run --group flyte pyflyte register flyte/workflows \
+	  --image $(TRAINER_IMAGE) \
+	  --project flytesnacks \
+	  --domain development \
+	  --version $(SHA)
+
+trigger-cheap:
+	uv run --group flyte pyflyte run --remote \
+	  --image $(TRAINER_IMAGE) \
+	  flyte/workflows/pipelines.py cheap_train_pipeline \
+	  --data_version $(DATA_VERSION)
+
+port-forward-flyte:
+	@echo "Flyte console: http://localhost:8088/console"
+	kubectl -n flyte port-forward svc/flyte-binary-http 8088:8088
