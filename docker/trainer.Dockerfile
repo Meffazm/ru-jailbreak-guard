@@ -25,5 +25,7 @@ COPY README.md LICENSE /app/
 # because Flyte spawns pods that exec `pyflyte-execute` from this image.
 RUN uv sync --frozen --no-dev --group flyte
 
-# Default command is overridden by Flyte's task runner; placeholder for direct runs.
-CMD ["uv", "run", "--group", "flyte", "python", "-c", "import flytekit; print(flytekit.__version__)"]
+# Default command is overridden by Flyte's task runner with `pyflyte-execute`.
+# `sleep infinity` keeps an accidentally-launched container idle without
+# triggering uv resolution; smoke tests should override CMD explicitly.
+CMD ["sleep", "infinity"]
