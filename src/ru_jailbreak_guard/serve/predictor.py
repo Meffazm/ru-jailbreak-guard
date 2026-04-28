@@ -11,7 +11,14 @@ from abc import ABC, abstractmethod
 from typing import Literal
 
 from fastapi import FastAPI
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
+from starlette.responses import Response
+
+from ru_jailbreak_guard.serve.metrics import (
+    observe_prediction,
+    set_model_version_info,
+)
 
 
 class PredictRequest(BaseModel):
@@ -47,6 +54,13 @@ class Predictor(ABC):
         t0 = time.perf_counter()
         label, confidence = self._predict_one(text)
         latency_ms = (time.perf_counter() - t0) * 1000.0
+        observe_prediction(
+            family=self.family,
+            label=label,  # ty: ignore[invalid-argument-type]
+            confidence=float(confidence),
+            latency_seconds=latency_ms / 1000.0,
+            text=text,
+        )
         return PredictionResponse(
             label=label,  # ty: ignore[invalid-argument-type]
             confidence=float(confidence),
@@ -58,9 +72,14 @@ class Predictor(ABC):
 
 
 def build_app(*, predictor: Predictor) -> FastAPI:
-    """Build a FastAPI app exposing /health and /predict."""
+    """Build a FastAPI app exposing /health, /predict, and /metrics."""
     app = FastAPI(title=f"ru-jailbreak-{predictor.family}")
     predictor.load()
+    set_model_version_info(
+        family=predictor.family,
+        version=predictor.version,
+        data_version=predictor.data_version,
+    )
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -69,5 +88,9 @@ def build_app(*, predictor: Predictor) -> FastAPI:
     @app.post("/predict", response_model=PredictionResponse)
     def predict(req: PredictRequest) -> PredictionResponse:
         return predictor.predict(req.text)
+
+    @app.get("/metrics")
+    def metrics() -> Response:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     return app

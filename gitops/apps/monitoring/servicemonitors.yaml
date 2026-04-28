@@ -1,0 +1,57 @@
+# One ServiceMonitor per predictor namespace. Prometheus picks these up via
+# the global selector configured in kube-prometheus-stack values
+# (serviceMonitorSelectorNilUsesHelmValues: false).
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ru-jailbreak-tfidf
+  namespace: model-tfidf
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [model-tfidf]
+  selector:
+    matchLabels:
+      component: predictor
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ru-jailbreak-lgbm
+  namespace: model-lgbm
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [model-lgbm]
+  selector:
+    matchLabels:
+      component: predictor
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ru-jailbreak-rubert-ft
+  namespace: model-rubert-ft
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [model-rubert-ft]
+  selector:
+    matchLabels:
+      component: predictor
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

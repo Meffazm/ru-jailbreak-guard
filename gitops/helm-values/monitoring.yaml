@@ -1,0 +1,78 @@
+# Helm values input for gitops/apps/monitoring/kube-prometheus-stack.yaml.
+# Lives outside gitops/apps/ so ArgoCD's ApplicationSet (which scans
+# gitops/apps/*) doesn't try to apply it as a k8s manifest.
+#
+# Re-render command (run from repo root):
+#   helm template monitoring prometheus-community/kube-prometheus-stack \
+#     --version <X.Y.Z> \
+#     --namespace monitoring --values gitops/helm-values/monitoring.yaml \
+#     > gitops/apps/monitoring/kube-prometheus-stack.yaml
+#
+# After editing this file, re-render and commit both. Chart version is pinned
+# in the leading comment of kube-prometheus-stack.yaml.
+
+fullnameOverride: monitoring
+
+crds:
+  enabled: true
+
+grafana:
+  adminPassword: admin
+  defaultDashboardsEnabled: true
+  service:
+    type: ClusterIP
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    resources:
+      requests: {cpu: 100m, memory: 512Mi}
+      limits: {cpu: 1, memory: 1Gi}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 4Gi
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+      limits: {cpu: 200m, memory: 128Mi}
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 1Gi
+  config:
+    route:
+      receiver: "null"
+    receivers:
+      - name: "null"
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+prometheusOperator:
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 256Mi}
