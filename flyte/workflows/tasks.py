@@ -145,6 +145,7 @@ def train_rubert(splits_dir: str, data_version: str) -> dict:
 # Evaluation + promotion
 # ---------------------------------------------------------------------------
 
+
 def _mlflow_client():
     """Build an MlflowClient from env. Helper exists so tests can patch it."""
     import mlflow
@@ -204,3 +205,60 @@ def evaluate(data_version: str) -> dict:
 
     champion = max(per_family.values(), key=lambda x: x["val_f1"])
     return {"per_family": per_family, "champion": champion}
+
+
+_FAMILY_TO_MODEL_NAME = {
+    "tfidf_logreg": "ru-jailbreak-tfidf-logreg",
+    "lgbm_emb": "ru-jailbreak-lgbm-emb",
+    "rubert_ft": "ru-jailbreak-rubert-ft",
+}
+
+
+@task(
+    cache=False,
+    retries=2,
+    timeout=60 * 2,
+    requests=Resources(cpu="100m", mem="256Mi"),
+    limits=Resources(cpu="500m", mem="512Mi"),
+)
+def promote(eval_result: dict) -> dict:
+    """Set MLflow registry aliases: @production per family, @champion overall.
+
+    Returns the version numbers chosen (logged as Flyte task output).
+    """
+    client = _mlflow_client()
+    per_family_versions: dict[str, str] = {}
+
+    for family, info in eval_result["per_family"].items():
+        model_name = _FAMILY_TO_MODEL_NAME.get(family)
+        if model_name is None:
+            continue
+        # Find the registered model version that wraps this run_id.
+        versions = client.search_model_versions(
+            filter_string=f"run_id = '{info['run_id']}' and name = '{model_name}'",
+        )
+        if not versions:
+            continue
+        version = versions[0].version
+        per_family_versions[family] = version
+        client.set_registered_model_alias(
+            name=model_name,
+            alias="production",
+            version=version,
+        )
+
+    champion = eval_result["champion"]
+    champion_family = champion["family"]
+    champion_model = _FAMILY_TO_MODEL_NAME[champion_family]
+    champion_version = per_family_versions[champion_family]
+    client.set_registered_model_alias(
+        name=champion_model,
+        alias="champion",
+        version=champion_version,
+    )
+
+    return {
+        "per_family_versions": per_family_versions,
+        "champion_family": champion_family,
+        "champion_version": champion_version,
+    }
