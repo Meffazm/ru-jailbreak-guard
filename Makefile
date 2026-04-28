@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio train-tfidf train-lgbm train-rubert
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio train-tfidf train-lgbm train-rubert publish-splits
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -92,3 +92,9 @@ train-rubert:
 	uv run python -m ru_jailbreak_guard.models.rubert_ft \
 	  --mlflow-uri http://localhost:5000 \
 	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
+
+publish-splits:
+	@echo "Uploading data/splits/ to s3://splits/<data_version>/"
+	MLFLOW_S3_ENDPOINT_URL=http://localhost:9000 \
+	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
+	uv run python scripts/publish_splits.py --skip-existing
