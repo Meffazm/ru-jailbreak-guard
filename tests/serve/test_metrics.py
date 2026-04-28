@@ -71,3 +71,68 @@ def test_set_model_version_info_sets_gauge_to_one() -> None:
         labels={"family": "rubert_ft", "version": "42", "data_version": "abcdef123456"},
     )
     assert val == 1.0
+
+
+def test_metrics_endpoint_exposed_by_build_app() -> None:
+    """The /metrics route is wired by build_app() and returns text format."""
+    from fastapi.testclient import TestClient
+
+    from ru_jailbreak_guard.serve.predictor import Predictor, build_app
+
+    class _FakePredictor(Predictor):
+        family = "tfidf_logreg"
+
+        def load(self) -> None:
+            pass
+
+        def _predict_one(self, text: str) -> tuple[str, float]:
+            return ("benign", 0.7)
+
+    p = _FakePredictor(version="0", data_version="x" * 12)
+    app = build_app(predictor=p)
+    client = TestClient(app)
+
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    body = response.text
+    assert "ru_jailbreak_prediction_label_total" in body
+    assert "ru_jailbreak_inference_latency_seconds" in body
+
+
+def test_predict_emits_metrics() -> None:
+    from fastapi.testclient import TestClient
+    from prometheus_client import REGISTRY
+
+    from ru_jailbreak_guard.serve.predictor import Predictor, build_app
+
+    class _FakePredictor(Predictor):
+        family = "lgbm_emb"
+
+        def load(self) -> None:
+            pass
+
+        def _predict_one(self, text: str) -> tuple[str, float]:
+            return ("jailbreak", 0.95)
+
+    p = _FakePredictor(version="7", data_version="abcdef123456")
+    app = build_app(predictor=p)
+    client = TestClient(app)
+
+    before = (
+        REGISTRY.get_sample_value(
+            "ru_jailbreak_prediction_label_total",
+            labels={"family": "lgbm_emb", "label": "jailbreak"},
+        )
+        or 0.0
+    )
+    response = client.post("/predict", json={"text": "тестовая строка"})
+    after = (
+        REGISTRY.get_sample_value(
+            "ru_jailbreak_prediction_label_total",
+            labels={"family": "lgbm_emb", "label": "jailbreak"},
+        )
+        or 0.0
+    )
+
+    assert response.status_code == 200
+    assert after - before == 1.0
