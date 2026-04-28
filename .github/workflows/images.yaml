@@ -31,6 +31,8 @@ jobs:
             dockerfile: docker/predictor-rubert-ft.Dockerfile
           - name: ui-streamlit
             dockerfile: docker/ui-streamlit.Dockerfile
+          - name: trainer
+            dockerfile: docker/trainer.Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v6
