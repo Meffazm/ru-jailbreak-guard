@@ -46,7 +46,7 @@ MLOps-цикла.
 - 🚧 `v0.3.0` — Phase 2: TF-IDF + LightGBM models live (KServe)
 - `v0.4.0` — Phase 3: fine-tuned ruBERT model live
 - `v0.5.0` — Phase 4: Streamlit multi-model UI
-- `v0.6.0` — Phase 5: Flyte orchestration + cron retraining
+- ✅ `v0.6.0` — Phase 5: Flyte orchestration + cron retraining
 - `v0.7.0` — Phase 6: Prometheus + Grafana + alerting
 - `v0.8.0` — Phase 7: closed-loop retraining (drift trigger + automated promotion)
 - `v1.0.0` — Phase 8: cloud demo on YC managed k8s
