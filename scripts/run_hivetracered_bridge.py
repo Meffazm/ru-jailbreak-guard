@@ -93,7 +93,7 @@ def main() -> int:
     seeds: list[str] = payload["seeds"]
     requested_categories: list[str] = payload.get("categories") or []
 
-    import hivetracered  # only available in the isolated venv
+    import hivetracered  # only available in the isolated venv  # ty: ignore[unresolved-import]
 
     attacks = collect_attacks(hivetracered, requested_categories)
     print(
