@@ -1,10 +1,14 @@
-# Input to:
-#   helm template flyte-binary flyteorg/flyte-binary --version <X.Y.Z> \
-#     --values values.yaml --namespace flyte > flyte-binary.yaml
+# Helm values input for gitops/apps/flyte/flyte-binary.yaml. Lives outside
+# gitops/apps/ so ArgoCD's ApplicationSet (which scans gitops/apps/*) doesn't
+# try to apply this as a k8s manifest.
 #
-# After editing this file, re-render flyte-binary.yaml with the same command,
-# then commit both. The chart version is pinned in the leading comment of
-# flyte-binary.yaml.
+# Re-render command (run from repo root):
+#   helm template flyte-binary flyteorg/flyte-binary --version <X.Y.Z> \
+#     --namespace flyte --values gitops/helm-values/flyte.yaml \
+#     > gitops/apps/flyte/flyte-binary.yaml
+#
+# After editing this file, re-render and commit both. Chart version is pinned
+# in the leading comment of flyte-binary.yaml.
 
 configuration:
   database:
