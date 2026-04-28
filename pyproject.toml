@@ -51,6 +51,9 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
 ]
+flyte = [
+    "flytekit==1.16.19",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
