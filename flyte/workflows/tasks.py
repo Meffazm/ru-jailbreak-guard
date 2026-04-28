@@ -139,3 +139,68 @@ def train_rubert(splits_dir: str, data_version: str) -> dict:
     )
     result = train_rubert_ft(cfg=cfg)
     return {**result, "model_family": "rubert_ft"}
+
+
+# ---------------------------------------------------------------------------
+# Evaluation + promotion
+# ---------------------------------------------------------------------------
+
+def _mlflow_client():
+    """Build an MlflowClient from env. Helper exists so tests can patch it."""
+    import mlflow
+
+    mlflow.set_tracking_uri(_MLFLOW_URI)
+    from mlflow.tracking import MlflowClient
+
+    return MlflowClient()
+
+
+@task(
+    cache=False,
+    retries=2,
+    timeout=60 * 2,
+    requests=Resources(cpu="100m", mem="256Mi"),
+    limits=Resources(cpu="500m", mem="512Mi"),
+)
+def evaluate(data_version: str) -> dict:
+    """Find the best run per model_family for this data_version.
+
+    Returns:
+        {
+          "per_family": {family: {"run_id": str, "val_f1": float, ...}},
+          "champion":   {"family": str, "run_id": str, "val_f1": float, ...},
+        }
+    """
+    client = _mlflow_client()
+    # Search across all experiments, filter by tag
+    runs = client.search_runs(
+        experiment_ids=[e.experiment_id for e in client.search_experiments()],
+        filter_string=f"tags.data_version = '{data_version}'",
+        max_results=200,
+    )
+    if not runs:
+        raise RuntimeError(f"No successful runs found for data_version={data_version}")
+
+    per_family: dict[str, dict] = {}
+    for r in runs:
+        family = r.data.tags.get("model_family")
+        if not family:
+            continue
+        val_f1 = r.data.metrics.get("val_f1")
+        if val_f1 is None:
+            continue
+        current_best = per_family.get(family)
+        if current_best is None or val_f1 > current_best["val_f1"]:
+            per_family[family] = {
+                "run_id": r.info.run_id,
+                "val_f1": val_f1,
+                "family": family,
+            }
+
+    if not per_family:
+        raise RuntimeError(
+            f"No successful runs with model_family tag for data_version={data_version}"
+        )
+
+    champion = max(per_family.values(), key=lambda x: x["val_f1"])
+    return {"per_family": per_family, "champion": champion}
