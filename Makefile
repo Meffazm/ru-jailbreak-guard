@@ -36,7 +36,7 @@ format:
 	uv run ruff format .
 
 type-check:
-	uv run ty check src tests scripts
+	uv run ty check src tests scripts flyte
 
 test:
 	uv run pytest
