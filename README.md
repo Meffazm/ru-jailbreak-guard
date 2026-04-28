@@ -43,9 +43,9 @@ MLOps-цикла.
 
 - ✅ `v0.1.0` — Phase 0: bootstrap (Python skeleton, CI, ArgoCD locally)
 - ✅ `v0.2.0` — Phase 1: data pipeline (DVC + HiveTrace sources)
-- 🚧 `v0.3.0` — Phase 2: TF-IDF + LightGBM models live (KServe)
-- `v0.4.0` — Phase 3: fine-tuned ruBERT model live
-- `v0.5.0` — Phase 4: Streamlit multi-model UI
+- ✅ `v0.3.0` / `v0.3.1` — Phase 2 + 2.5: TF-IDF + LightGBM models live (KServe)
+- ✅ `v0.4.0` — Phase 3: fine-tuned ruBERT-tiny2 model live
+- ✅ `v0.5.0` — Phase 4: Streamlit multi-model UI
 - ✅ `v0.6.0` — Phase 5: Flyte orchestration + cron retraining
 - `v0.7.0` — Phase 6: Prometheus + Grafana + alerting
 - `v0.8.0` — Phase 7: closed-loop retraining (drift trigger + automated promotion)
