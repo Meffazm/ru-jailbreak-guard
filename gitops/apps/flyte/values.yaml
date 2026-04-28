@@ -57,7 +57,10 @@ deployment:
 rbac:
   create: true
   extraRules:
-    # Allow Flyte to launch task pods anywhere (not just flyte ns)
+    # Allow Flyte to launch + observe task pods anywhere (not just flyte ns).
+    # TODO(phase-8): tighten before cloud install — verbs: ["*"] is overly broad;
+    # cloud Flyte only needs ["get", "list", "watch"] on pods/log and arguably
+    # no pods/exec at all. Local-first auth=disabled tolerates this.
     - apiGroups: [""]
       resources: ["pods", "pods/log", "pods/exec"]
       verbs: ["*"]
