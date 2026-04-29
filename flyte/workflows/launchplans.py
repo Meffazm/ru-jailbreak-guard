@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from flytekit import CronSchedule, LaunchPlan
 
+from flyte.workflows.drift import drift_detect
 from flyte.workflows.pipelines import (
     cheap_train_pipeline,
     evaluate_and_promote,
@@ -43,4 +44,29 @@ evaluate_promote_lp = LaunchPlan.get_or_create(
     name="evaluate_and_promote_default",
     workflow=evaluate_and_promote,  # ty: ignore[invalid-argument-type]
     default_inputs={"data_version": DEFAULT_DATA_VERSION},
+)
+
+
+# Phase 7 — per-family drift detection LaunchPlans (weekly, staggered hours).
+drift_weekly_tfidf = LaunchPlan.get_or_create(
+    name="drift_weekly_tfidf",
+    workflow=drift_detect,  # ty: ignore[invalid-argument-type]
+    default_inputs={"data_version": DEFAULT_DATA_VERSION, "family": "tfidf_logreg"},
+    schedule=CronSchedule(schedule="0 6 * * 1"),  # Mon 06:00 UTC
+)
+
+
+drift_weekly_lgbm = LaunchPlan.get_or_create(
+    name="drift_weekly_lgbm",
+    workflow=drift_detect,  # ty: ignore[invalid-argument-type]
+    default_inputs={"data_version": DEFAULT_DATA_VERSION, "family": "lgbm_emb"},
+    schedule=CronSchedule(schedule="0 7 * * 1"),
+)
+
+
+drift_weekly_rubert = LaunchPlan.get_or_create(
+    name="drift_weekly_rubert",
+    workflow=drift_detect,  # ty: ignore[invalid-argument-type]
+    default_inputs={"data_version": DEFAULT_DATA_VERSION, "family": "rubert_ft"},
+    schedule=CronSchedule(schedule="0 8 * * 1"),
 )
