@@ -55,3 +55,21 @@ spec:
     - port: http
       path: /metrics
       interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ru-jailbreak-ui
+  namespace: ui
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [ui]
+  selector:
+    matchLabels:
+      app: ui-streamlit
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
