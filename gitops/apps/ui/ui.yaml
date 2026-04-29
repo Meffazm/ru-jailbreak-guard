@@ -19,6 +19,8 @@ spec:
           ports:
             - containerPort: 8501
               name: http
+            - containerPort: 9100
+              name: metrics
           env:
             # Override default cluster.local FQDNs only when needed; Service
             # names within the cluster resolve via the search path.
@@ -58,3 +60,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8501
+    - name: metrics
+      port: 9100
+      targetPort: 9100

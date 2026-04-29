@@ -6,6 +6,7 @@ Concrete predictors subclass `Predictor` and implement `load()` and
 
 from __future__ import annotations
 
+import contextlib
 import time
 from abc import ABC, abstractmethod
 from typing import Literal
@@ -19,6 +20,16 @@ from ru_jailbreak_guard.serve.metrics import (
     observe_prediction,
     set_model_version_info,
 )
+from ru_jailbreak_guard.serve.sampling import SamplingBuffer, make_default_buffer
+
+_BUFFERS: dict[str, SamplingBuffer] = {}
+
+
+def _get_buffer(family: str) -> SamplingBuffer:
+    """Get-or-create a per-family sampling buffer. Patched in tests."""
+    if family not in _BUFFERS:
+        _BUFFERS[family] = make_default_buffer(family)
+    return _BUFFERS[family]
 
 
 class PredictRequest(BaseModel):
@@ -61,6 +72,13 @@ class Predictor(ABC):
             latency_seconds=latency_ms / 1000.0,
             text=text,
         )
+        # Sampling never breaks predictions.
+        with contextlib.suppress(Exception):
+            _get_buffer(self.family).maybe_append(
+                text=text,
+                label=label,
+                confidence=float(confidence),
+            )
         return PredictionResponse(
             label=label,  # ty: ignore[invalid-argument-type]
             confidence=float(confidence),

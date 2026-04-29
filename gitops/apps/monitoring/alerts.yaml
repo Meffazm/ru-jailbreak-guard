@@ -65,3 +65,14 @@ spec:
             severity: warning
           annotations:
             summary: "Jailbreak rate < 5% for family {{ $labels.family }} (possible model regression)"
+
+    - name: ru-jailbreak-drift
+      rules:
+        - alert: RuJailbreakDriftDetected
+          expr: |
+            max by (family) (last_over_time(ru_jailbreak_drift_detected[8d])) == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Drift detected for family {{ $labels.family }} — consider retraining"

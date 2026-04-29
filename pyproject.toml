@@ -18,6 +18,7 @@ dependencies = [
     "pyyaml==6.0.3",
     # Phase 2 — modeling
     "scikit-learn==1.7.2",
+    "scipy==1.17.1",
     "lightgbm==4.6.0",
     "transformers==4.48.2",
     "torch==2.6.0",

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte port-forward-grafana port-forward-prometheus port-forward-alertmanager train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte port-forward-grafana port-forward-prometheus port-forward-alertmanager port-forward-pushgateway train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -135,3 +135,7 @@ port-forward-prometheus:
 port-forward-alertmanager:
 	@echo "Alertmanager: http://localhost:9093"
 	kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-alertmanager 9093:9093
+
+port-forward-pushgateway:
+	@echo "Pushgateway: http://localhost:9091"
+	kubectl -n pushgateway port-forward svc/pushgateway 9091:9091

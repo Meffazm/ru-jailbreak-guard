@@ -18,6 +18,31 @@ from dataclasses import dataclass
 
 import httpx
 import streamlit as st
+from prometheus_client import Counter, start_http_server
+
+_DISAGREEMENT = Counter(
+    "ru_jailbreak_disagreement_total",
+    "Predictor families disagree on a request.",
+    ("champion_label", "other_family", "other_label"),
+)
+
+# Streamlit hot-reload re-imports this module; bind the metrics server only once.
+_METRICS_STARTED = False
+
+
+def _ensure_metrics_server() -> None:
+    global _METRICS_STARTED
+    if _METRICS_STARTED:
+        return
+    try:
+        start_http_server(9100)
+        _METRICS_STARTED = True
+    except OSError:
+        # Port already bound by an earlier Streamlit reload — fine.
+        _METRICS_STARTED = True
+
+
+_ensure_metrics_server()
 
 DEFAULT_ENDPOINTS = {
     "tfidf_logreg": "http://ru-jailbreak-tfidf-predictor.model-tfidf.svc.cluster.local",
@@ -146,11 +171,12 @@ def _view_comparison(text: str) -> None:
                 _render_one_result(result=results[family], container=st.container())
 
     # Agreement summary
-    labels: list[str] = [
-        str(r.body.get("label", ""))
-        for r in results.values()
+    family_labels: dict[str, str] = {
+        f: str(r.body.get("label", ""))
+        for f, r in results.items()
         if r.error is None and r.status == 200 and r.body.get("label") is not None
-    ]
+    }
+    labels: list[str] = list(family_labels.values())
     if labels and len(set(labels)) == 1:
         st.success(f"All families agree: **{labels[0]}**")
     elif labels:
@@ -159,6 +185,14 @@ def _view_comparison(text: str) -> None:
             counts[label] = counts.get(label, 0) + 1
         majority = max(counts.items(), key=lambda kv: kv[1])[0]
         st.warning(f"Disagreement: {counts}. Majority: **{majority}**.")
+        # Phase 7 — emit disagreement metric so the drift workflow can correlate.
+        for family, label in family_labels.items():
+            if label != majority:
+                _DISAGREEMENT.labels(
+                    champion_label=majority,
+                    other_family=family,
+                    other_label=label,
+                ).inc()
 
     _add_to_history(text, list(results.values()))
 

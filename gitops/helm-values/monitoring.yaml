@@ -76,3 +76,6 @@ prometheusOperator:
   resources:
     requests: {cpu: 50m, memory: 128Mi}
     limits: {cpu: 500m, memory: 256Mi}
+
+# Note: Pushgateway is NOT bundled in kube-prometheus-stack — it's deployed
+# separately as gitops/apps/pushgateway/ (Phase 7).
