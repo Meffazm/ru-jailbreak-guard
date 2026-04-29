@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte port-forward-grafana port-forward-prometheus port-forward-alertmanager port-forward-pushgateway train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap
+.PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte port-forward-grafana port-forward-prometheus port-forward-alertmanager port-forward-pushgateway train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap cloud-up cloud-down
 
 help:
 	@echo "ru-jailbreak-guard — top-level commands"
@@ -139,3 +139,12 @@ port-forward-alertmanager:
 port-forward-pushgateway:
 	@echo "Pushgateway: http://localhost:9091"
 	kubectl -n pushgateway port-forward svc/pushgateway 9091:9091
+
+# Phase 8 — cloud capture lifecycle
+cloud-up:
+	@echo "Bringing up YC k8s cluster + bootstrapping ArgoCD..."
+	cd infra && terraform init && terraform apply
+	./scripts/bootstrap_cloud.sh
+
+cloud-down:
+	./scripts/teardown_cloud.sh

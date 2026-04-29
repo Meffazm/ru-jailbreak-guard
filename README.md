@@ -49,7 +49,7 @@ MLOps-цикла.
 - ✅ `v0.6.0` — Phase 5: Flyte orchestration + cron retraining
 - ✅ `v0.7.0` — Phase 6: Prometheus + Grafana + alerting
 - ✅ `v0.8.0` — Phase 7: closed-loop retraining (drift trigger + automated promotion)
-- `v1.0.0` — Phase 8: cloud demo on YC managed k8s
+- ✅ `v1.0.0` — Phase 8: cloud demo on YC managed k8s
 
 ## Установка локально
 
