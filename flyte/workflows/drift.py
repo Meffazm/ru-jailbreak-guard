@@ -149,7 +149,7 @@ def push_drift_metric(report: dict, family: str) -> None:
 
     pushgateway_url = os.environ.get(
         "PUSHGATEWAY_URL",
-        "http://monitoring-prometheus-pushgateway.monitoring.svc.cluster.local:9091",
+        "http://pushgateway.pushgateway.svc.cluster.local:9091",
     )
     try:
         push_to_gateway(pushgateway_url, job=f"drift-{family}", registry=reg)
