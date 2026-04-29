@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from ru_jailbreak_guard.serve.sampling import (
     SamplingBuffer,
     cyrillic_aware_record,
@@ -48,3 +50,35 @@ def test_sample_rate_zero_never_appends() -> None:
     for _ in range(50):
         buf.maybe_append(text="x", label="benign", confidence=0.5)
     assert s3.put_object.call_count == 0
+
+
+def test_predictor_predict_appends_to_buffer(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi.testclient import TestClient
+
+    from ru_jailbreak_guard.serve import predictor as predictor_module
+    from ru_jailbreak_guard.serve.predictor import Predictor, build_app
+
+    appended: list[dict] = []
+
+    class _FakeBuffer:
+        def maybe_append(self, *, text: str, label: str, confidence: float) -> None:
+            appended.append({"text": text, "label": label, "confidence": confidence})
+
+    monkeypatch.setattr(predictor_module, "_get_buffer", lambda family: _FakeBuffer())
+
+    class _FakePredictor(Predictor):
+        family = "rubert_ft"
+
+        def load(self) -> None:
+            pass
+
+        def _predict_one(self, text: str) -> tuple[str, float]:
+            return ("benign", 0.7)
+
+    p = _FakePredictor(version="1", data_version="x" * 12)
+    client = TestClient(build_app(predictor=p))
+    response = client.post("/predict", json={"text": "тест"})
+
+    assert response.status_code == 200
+    assert len(appended) == 1
+    assert appended[0]["label"] == "benign"
