@@ -174,7 +174,7 @@ def train_lgbm_emb(*, cfg: TrainConfig) -> dict[str, Any]:
             mlflow.log_artifact(str(booster_path))
             mlflow.lightgbm.log_model(
                 lgb_model=booster,
-                artifact_path="model",
+                name="model",
                 registered_model_name=cfg.register_as,
             )
             run_id = run.info.run_id

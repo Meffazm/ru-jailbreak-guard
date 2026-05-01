@@ -140,6 +140,7 @@ def test_rubert_ft_predictor_loads_real_model(tmp_path: Path) -> None:
     model_dir = tmp_path / "model"
     model_dir.mkdir()
     tok = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny2")
+    assert tok is not None
     model = AutoModelForSequenceClassification.from_pretrained(
         "cointegrated/rubert-tiny2", num_labels=2
     )

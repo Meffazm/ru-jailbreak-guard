@@ -50,7 +50,7 @@ class Encoder:
             float32 array of shape (N, hidden_size).
         """
         with torch.no_grad():
-            tokens = self._tokenizer(
+            tokens = self._tokenizer(  # ty: ignore[call-non-callable]
                 texts,
                 padding=True,
                 truncation=True,

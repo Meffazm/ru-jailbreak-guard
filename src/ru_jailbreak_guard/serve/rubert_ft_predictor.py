@@ -57,7 +57,7 @@ class RubertFtPredictor(Predictor):
         client = mlflow.tracking.MlflowClient()
         model_version = client.get_model_version(name=model_name, version=version)
         run_id = model_version.run_id
-        data_version = client.get_run(run_id).data.tags.get("data_version", "unknown")
+        data_version = client.get_run(run_id).data.tags.get("data_version", "unknown")  # ty: ignore[invalid-argument-type]
         local_dir = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path="model")
         return cls(
             version=version,

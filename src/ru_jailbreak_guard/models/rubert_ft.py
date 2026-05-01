@@ -132,6 +132,8 @@ def train_rubert_ft(*, cfg: TrainConfig) -> dict[str, Any]:
     test_texts, y_test, test_df = _load_split(cfg.test_path)
 
     tokenizer = AutoTokenizer.from_pretrained(cfg.backbone, revision=cfg.revision)
+    if tokenizer is None:
+        raise RuntimeError(f"Failed to load tokenizer for {cfg.backbone}")
     model = AutoModelForSequenceClassification.from_pretrained(
         cfg.backbone,
         revision=cfg.revision,
@@ -152,7 +154,7 @@ def train_rubert_ft(*, cfg: TrainConfig) -> dict[str, Any]:
         per_device_eval_batch_size=cfg.batch_size,
         learning_rate=cfg.learning_rate,
         weight_decay=cfg.weight_decay,
-        warmup_ratio=cfg.warmup_ratio,
+        warmup_steps=cfg.warmup_ratio,
         eval_strategy="epoch",
         save_strategy="no",
         logging_strategy="epoch",
@@ -168,7 +170,7 @@ def train_rubert_ft(*, cfg: TrainConfig) -> dict[str, Any]:
         train_dataset=train_ds,
         eval_dataset=val_ds,
     )
-    trainer.train()  # ty: ignore[unresolved-attribute]
+    trainer.train()
 
     val_pred, val_score = _predict(model, tokenizer, val_texts, cfg)
     test_pred, test_score = _predict(model, tokenizer, test_texts, cfg)

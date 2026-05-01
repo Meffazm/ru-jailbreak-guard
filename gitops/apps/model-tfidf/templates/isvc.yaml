@@ -3,7 +3,7 @@ kind: InferenceService
 metadata:
   name: ru-jailbreak-tfidf
   annotations:
-    serving.kserve.io/deploymentMode: RawDeployment
+    serving.kserve.io/deploymentMode: Standard
     serving.kserve.io/autoscalerClass: hpa
 spec:
   predictor:

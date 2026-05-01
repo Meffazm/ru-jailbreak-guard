@@ -76,7 +76,7 @@ def train_tfidf_logreg(*, cfg: TrainConfig) -> dict[str, Any]:
     x_val = tfidf.transform(val_texts)
     x_test = tfidf.transform(test_texts)
 
-    model = LogisticRegression(C=cfg.C, max_iter=cfg.max_iter, random_state=cfg.seed, n_jobs=1)
+    model = LogisticRegression(C=cfg.C, max_iter=cfg.max_iter, random_state=cfg.seed)
     model.fit(x_train, y_train)
 
     val_pred = model.predict(x_val)
@@ -147,7 +147,7 @@ def train_tfidf_logreg(*, cfg: TrainConfig) -> dict[str, Any]:
             mlflow.log_artifact(str(logreg_path))
             mlflow.sklearn.log_model(
                 sk_model=model,
-                artifact_path="model",
+                name="model",
                 registered_model_name=cfg.register_as,
             )
             run_id = run.info.run_id
