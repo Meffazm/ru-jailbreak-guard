@@ -26,7 +26,6 @@ configuration:
   inline:
     plugins:
       k8s:
-        # Run training tasks in the flyte namespace; predictors stay in their own ns
         default-env-vars:
           - MLFLOW_TRACKING_URI: http://mlflow.mlflow.svc.cluster.local:5000
           - MLFLOW_S3_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
@@ -35,6 +34,14 @@ configuration:
           - AWS_DEFAULT_REGION: us-east-1
           - OMP_NUM_THREADS: "1"
           - KMP_DUPLICATE_LIB_OK: "TRUE"
+    task_resources:
+      defaults:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 4
+        memory: 8Gi
+        storage: 20Gi
   auth:
     enabled: false  # Auth gating handled at the ingress layer.
 
