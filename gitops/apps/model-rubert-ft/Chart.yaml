@@ -1,0 +1,4 @@
+apiVersion: v2
+name: model-rubert-ft
+version: 0.1.0
+description: KServe InferenceService for fine-tuned ruBERT-tiny2

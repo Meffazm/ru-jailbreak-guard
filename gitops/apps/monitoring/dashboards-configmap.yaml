@@ -1,0 +1,103 @@
+# Grafana auto-discovers ConfigMaps in any namespace with the label
+# `grafana_dashboard: "1"` (configured via the chart's grafana.sidecar.dashboards
+# settings) and mounts the dashboard JSON.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ru-jailbreak-dashboards
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  service-health.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Request Rate by Family",
+          "targets": [{"expr": "sum by (family) (rate(ru_jailbreak_prediction_label_total[5m]))", "refId": "A"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+        },
+        {
+          "type": "graph",
+          "title": "Latency p50 / p95 / p99 by Family",
+          "targets": [
+            {"expr": "histogram_quantile(0.5, sum by (family, le) (rate(ru_jailbreak_inference_latency_seconds_bucket[5m])))", "refId": "A", "legendFormat": "{{family}} p50"},
+            {"expr": "histogram_quantile(0.95, sum by (family, le) (rate(ru_jailbreak_inference_latency_seconds_bucket[5m])))", "refId": "B", "legendFormat": "{{family}} p95"},
+            {"expr": "histogram_quantile(0.99, sum by (family, le) (rate(ru_jailbreak_inference_latency_seconds_bucket[5m])))", "refId": "C", "legendFormat": "{{family}} p99"}
+          ],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+        },
+        {
+          "type": "graph",
+          "title": "Pod CPU usage by predictor",
+          "targets": [{"expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=~\"model-.*\"}[5m]))", "refId": "A"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+        },
+        {
+          "type": "graph",
+          "title": "Pod memory by predictor",
+          "targets": [{"expr": "sum by (pod) (container_memory_working_set_bytes{namespace=~\"model-.*\"})", "refId": "A"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+        }
+      ],
+      "schemaVersion": 30,
+      "title": "ru-jailbreak — Service Health",
+      "uid": "ru-jailbreak-service-health",
+      "version": 1
+    }
+  ml-observability.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {
+          "type": "graph",
+          "title": "Prediction Label Rate (jailbreak vs benign)",
+          "targets": [{"expr": "sum by (family, label) (rate(ru_jailbreak_prediction_label_total[5m]))", "refId": "A", "legendFormat": "{{family}} {{label}}"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+        },
+        {
+          "type": "graph",
+          "title": "Confidence p50 / p95 by Family",
+          "targets": [
+            {"expr": "histogram_quantile(0.5, sum by (family, le) (rate(ru_jailbreak_prediction_confidence_bucket[5m])))", "refId": "A", "legendFormat": "{{family}} p50"},
+            {"expr": "histogram_quantile(0.95, sum by (family, le) (rate(ru_jailbreak_prediction_confidence_bucket[5m])))", "refId": "B", "legendFormat": "{{family}} p95"}
+          ],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+        },
+        {
+          "type": "graph",
+          "title": "Token-count distribution",
+          "targets": [{"expr": "histogram_quantile(0.95, sum by (family, le) (rate(ru_jailbreak_tokens_per_request_bucket[5m])))", "refId": "A", "legendFormat": "{{family}} p95"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+        },
+        {
+          "type": "graph",
+          "title": "Cyrillic ratio distribution",
+          "targets": [{"expr": "histogram_quantile(0.5, sum by (family, le) (rate(ru_jailbreak_cyrillic_ratio_bucket[5m])))", "refId": "A", "legendFormat": "{{family}} p50"}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+        },
+        {
+          "type": "table",
+          "title": "Currently deployed model versions",
+          "targets": [{"expr": "ru_jailbreak_model_version_info", "refId": "A", "format": "table", "instant": true}],
+          "datasource": "Prometheus",
+          "gridPos": {"h": 6, "w": 24, "x": 0, "y": 16}
+        }
+      ],
+      "schemaVersion": 30,
+      "title": "ru-jailbreak — ML Observability",
+      "uid": "ru-jailbreak-ml-observability",
+      "version": 1
+    }

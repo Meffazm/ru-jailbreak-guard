@@ -1,0 +1,59 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: ru-jailbreak-rubert-ft
+  annotations:
+    serving.kserve.io/deploymentMode: RawDeployment
+    serving.kserve.io/autoscalerClass: hpa
+spec:
+  predictor:
+    minReplicas: {{ .Values.replicas.min }}
+    maxReplicas: {{ .Values.replicas.max }}
+    containers:
+      - name: kserve-container
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: {{ .Values.mlflowTrackingUri | quote }}
+          - name: MLFLOW_S3_ENDPOINT_URL
+            value: {{ .Values.mlflowS3Endpoint | quote }}
+          - name: MLFLOW_MODEL_NAME
+            value: {{ .Values.modelName | quote }}
+          - name: MODEL_VERSION_PIN
+            value: {{ .Values.modelVersion | quote }}
+          - name: PREDICTOR_DEVICE
+            value: {{ .Values.predictorDevice | quote }}
+          - name: AWS_DEFAULT_REGION
+            value: {{ .Values.awsRegion | quote }}
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-credentials
+                key: AWS_SECRET_ACCESS_KEY
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 120
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}

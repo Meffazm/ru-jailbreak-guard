@@ -1,0 +1,33 @@
+# Placeholder ApplicationSet — phases 2+ will populate gitops/apps/
+# Currently watches an empty apps/ directory; ArgoCD will not deploy anything.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ru-jailbreak-guard
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/Meffazm/ru-jailbreak-guard
+        revision: main
+        directories:
+          - path: gitops/apps/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: ru-jailbreak-guard
+      source:
+        repoURL: https://github.com/Meffazm/ru-jailbreak-guard
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

@@ -1,0 +1,78 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ru-jailbreak-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: ru-jailbreak-service-health
+      rules:
+        - alert: RuJailbreakHighErrorRate
+          expr: |
+            sum by (namespace) (rate(http_requests_total{namespace=~"model-.*",status=~"5.."}[5m]))
+              /
+            sum by (namespace) (rate(http_requests_total{namespace=~"model-.*"}[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High 5xx error rate for predictor in {{ $labels.namespace }}"
+
+        - alert: RuJailbreakHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum by (family, le) (rate(ru_jailbreak_inference_latency_seconds_bucket[5m]))
+            ) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "p95 inference latency > 500ms for family {{ $labels.family }}"
+
+    - name: ru-jailbreak-ml
+      rules:
+        - alert: RuJailbreakConfidenceCollapse
+          expr: |
+            histogram_quantile(0.5,
+              sum by (family, le) (rate(ru_jailbreak_prediction_confidence_bucket[1h]))
+            ) < 0.6
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Median prediction confidence < 0.6 for family {{ $labels.family }}"
+
+        - alert: RuJailbreakClassImbalanceHigh
+          expr: |
+            sum by (family) (rate(ru_jailbreak_prediction_label_total{label="jailbreak"}[1h]))
+              /
+            sum by (family) (rate(ru_jailbreak_prediction_label_total[1h])) > 0.8
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Jailbreak rate > 80% for family {{ $labels.family }} (possible attack surge)"
+
+        - alert: RuJailbreakClassImbalanceLow
+          expr: |
+            sum by (family) (rate(ru_jailbreak_prediction_label_total{label="jailbreak"}[1h]))
+              /
+            sum by (family) (rate(ru_jailbreak_prediction_label_total[1h])) < 0.05
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Jailbreak rate < 5% for family {{ $labels.family }} (possible model regression)"
+
+    - name: ru-jailbreak-drift
+      rules:
+        - alert: RuJailbreakDriftDetected
+          expr: |
+            max by (family) (last_over_time(ru_jailbreak_drift_detected[8d])) == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Drift detected for family {{ $labels.family }} — consider retraining"

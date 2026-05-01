@@ -1,0 +1,74 @@
+# Helm values for flyte-binary. Re-render after editing:
+#   helm template flyte-binary flyteorg/flyte-binary --version <X.Y.Z> \
+#     --namespace flyte --values gitops/helm-values/flyte.yaml \
+#     > gitops/apps/flyte/flyte-binary.yaml
+
+configuration:
+  database:
+    host: postgres.postgres.svc.cluster.local
+    port: 5432
+    dbname: flyte
+    username: flyte
+    password: flyte
+  storage:
+    metadataContainer: flyte-meta
+    userDataContainer: flyte-meta
+    provider: s3
+    providerConfig:
+      s3:
+        endpoint: http://minio.minio.svc.cluster.local:9000
+        authType: accesskey
+        accessKey: minioadmin
+        secretKey: minioadmin
+        disableSSL: true
+        v2Signing: true
+        region: us-east-1
+  inline:
+    plugins:
+      k8s:
+        # Run training tasks in the flyte namespace; predictors stay in their own ns
+        default-env-vars:
+          - MLFLOW_TRACKING_URI: http://mlflow.mlflow.svc.cluster.local:5000
+          - MLFLOW_S3_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
+          - AWS_ACCESS_KEY_ID: minioadmin
+          - AWS_SECRET_ACCESS_KEY: minioadmin
+          - AWS_DEFAULT_REGION: us-east-1
+          - OMP_NUM_THREADS: "1"
+          - KMP_DUPLICATE_LIB_OK: "TRUE"
+  auth:
+    enabled: false  # Auth gating handled at the ingress layer.
+
+deployment:
+  image:
+    # cr.flyte.org redirects to GHCR but Docker Desktop's registry mirror
+    # can't follow the redirect (returns 401). Use the GHCR canonical name.
+    repository: ghcr.io/flyteorg/flyte-binary-release
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+rbac:
+  create: true
+  extraRules:
+    # Allow Flyte to launch + observe task pods anywhere (not just flyte ns).
+    # TODO(phase-8): tighten before cloud install — verbs: ["*"] is overly broad;
+    # cloud Flyte only needs ["get", "list", "watch"] on pods/log and arguably
+    # no pods/exec at all. Local-first auth=disabled tolerates this.
+    - apiGroups: [""]
+      resources: ["pods", "pods/log", "pods/exec"]
+      verbs: ["*"]
+
+clusterResourceTemplates:
+  inline:
+    # Ensure default project + domain exist
+    "001_namespace.yaml": |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: '{{ namespace }}'

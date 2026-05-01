@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-streamlit
+  namespace: ui
+  labels: { app: ui-streamlit }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ui-streamlit }
+  template:
+    metadata:
+      labels: { app: ui-streamlit }
+    spec:
+      containers:
+        - name: ui
+          image: ghcr.io/meffazm/ru-jailbreak-guard/ui-streamlit:sha-5600fc7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8501
+              name: http
+            - containerPort: 9100
+              name: metrics
+          env:
+            - name: PREDICTOR_TFIDF_LOGREG_URL
+              value: http://ru-jailbreak-tfidf-predictor.model-tfidf.svc.cluster.local
+            - name: PREDICTOR_LGBM_EMB_URL
+              value: http://ru-jailbreak-lgbm-predictor.model-lgbm.svc.cluster.local
+            - name: PREDICTOR_RUBERT_FT_URL
+              value: http://ru-jailbreak-rubert-ft-predictor.model-rubert-ft.svc.cluster.local
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-streamlit
+  namespace: ui
+spec:
+  selector: { app: ui-streamlit }
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8501
+    - name: metrics
+      port: 9100
+      targetPort: 9100
