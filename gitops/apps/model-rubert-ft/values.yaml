@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/meffazm/ru-jailbreak-guard/predictor-rubert-ft
-  tag: sha-5600fc7
+  tag: sha-441e115
   pullPolicy: IfNotPresent
 modelVersion: "1"
 mlflowTrackingUri: http://mlflow.mlflow.svc.cluster.local:5000

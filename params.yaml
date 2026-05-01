@@ -6,11 +6,11 @@ dmtrdr:
   revision: null  # null = HF latest; set to a SHA for reproducibility
 
 benign:
-  n_samples: 1000
+  n_samples: 22000
 
 hivetracered:
   # Space-separated for CLI (nargs="+"); DVC cannot interpolate YAML lists.
-  categories: "roleplay"
+  categories: "roleplay context_switching token_smuggling"
 
 merge:
   target_ratio: 0.5

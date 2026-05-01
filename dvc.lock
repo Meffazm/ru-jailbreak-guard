@@ -29,19 +29,19 @@ stages:
       size: 760
   fetch_benign:
     cmd: "uv run python -m ru_jailbreak_guard.data.benign --output data/raw/benign.parquet
-      --n-samples 1000 --seed 42\n"
+      --n-samples 22000 --seed 42\n"
     params:
       params.yaml:
-        benign.n_samples: 1000
+        benign.n_samples: 22000
         seed: 42
     outs:
     - path: data/raw/benign.parquet
       hash: md5
-      md5: 5afd281ba307ea1d5a38a7b8e02d66fe
-      size: 120274
+      md5: b7ed6a3fc0354d9649771d1153374346
+      size: 2487329
   generate_attacks:
     cmd: "uv run python -m ru_jailbreak_guard.data.attack_gen --seeds-input data/raw/dmtrdr.parquet
-      --output data/raw/attacks.parquet --categories roleplay\n"
+      --output data/raw/attacks.parquet --categories roleplay context_switching token_smuggling\n"
     deps:
     - path: data/raw/dmtrdr.parquet
       hash: md5
@@ -49,12 +49,12 @@ stages:
       size: 5420219
     params:
       params.yaml:
-        hivetracered.categories: roleplay
+        hivetracered.categories: roleplay context_switching token_smuggling
     outs:
     - path: data/raw/attacks.parquet
       hash: md5
-      md5: be1f71f11f8232e8dac0e50415e1d83d
-      size: 9047934
+      md5: 8ca4d525a2476c564690010a1ebd031b
+      size: 98726556
   merge:
     cmd: "uv run python -m ru_jailbreak_guard.data.merge --inputs data/raw/dmtrdr.parquet
       data/raw/hivetrace_sysprompt.parquet data/raw/wildguardmix_ru.parquet data/raw/benign.parquet
@@ -63,12 +63,12 @@ stages:
     deps:
     - path: data/raw/attacks.parquet
       hash: md5
-      md5: be1f71f11f8232e8dac0e50415e1d83d
-      size: 9047934
+      md5: 8ca4d525a2476c564690010a1ebd031b
+      size: 98726556
     - path: data/raw/benign.parquet
       hash: md5
-      md5: 5afd281ba307ea1d5a38a7b8e02d66fe
-      size: 120274
+      md5: b7ed6a3fc0354d9649771d1153374346
+      size: 2487329
     - path: data/raw/dmtrdr.parquet
       hash: md5
       md5: 69a67c815a69de80dd3338aebba5fb7a
@@ -89,8 +89,8 @@ stages:
     outs:
     - path: data/merged/all.parquet
       hash: md5
-      md5: 971ffad95c4f2a255053b349cc718502
-      size: 641831
+      md5: c97dfa3ad3bdffe1b55e317b8e1497e9
+      size: 13990391
   split:
     cmd: "uv run python -m ru_jailbreak_guard.data.split --input data/merged/all.parquet
       --out-train data/splits/train.parquet --out-val data/splits/val.parquet --out-test
@@ -98,8 +98,8 @@ stages:
     deps:
     - path: data/merged/all.parquet
       hash: md5
-      md5: 971ffad95c4f2a255053b349cc718502
-      size: 641831
+      md5: c97dfa3ad3bdffe1b55e317b8e1497e9
+      size: 13990391
     params:
       params.yaml:
         seed: 42
@@ -107,16 +107,16 @@ stages:
     outs:
     - path: data/splits/test.parquet
       hash: md5
-      md5: 0d1af3861e90b9e97a8477265b7938b5
-      size: 116294
+      md5: e0471eb52f58277e1546803947f5b3b9
+      size: 2051119
     - path: data/splits/train.parquet
       hash: md5
-      md5: 061137d6b878520569b7de17dc392caf
-      size: 446426
+      md5: 81a24e5805aa36f10dbdb7f3c49a63a8
+      size: 9850136
     - path: data/splits/val.parquet
       hash: md5
-      md5: 08076d2c0392bfd1d6c3de60f5fd4d2f
-      size: 124942
+      md5: 6ffe5b2ae3ffde3d66c8a502f13383ef
+      size: 2169845
   profile:
     cmd: "uv run python -m ru_jailbreak_guard.data.profile --input data/merged/all.parquet
       --output reports/data_profile.html\n"

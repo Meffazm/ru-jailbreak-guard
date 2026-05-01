@@ -43,22 +43,28 @@ def merge_all(dfs: list[pl.DataFrame]) -> pl.DataFrame:
     return merged
 
 
+def dedup_exact(df: pl.DataFrame) -> pl.DataFrame:
+    """Drop rows with byte-identical normalized text. O(N log N)."""
+    if df.height == 0:
+        return df
+    return df.with_columns(_norm=pl.col("text").map_elements(_normalize, return_dtype=pl.Utf8)) \
+             .unique(subset=["_norm"], keep="first") \
+             .drop("_norm")
+
+
 def dedup_minhash(
     df: pl.DataFrame,
     jaccard_threshold: float = DEFAULT_JACCARD_THRESHOLD,
+    max_lsh_rows: int = 30_000,
 ) -> pl.DataFrame:
     """Drop rows whose text is near-duplicate of an earlier row.
 
-    Uses MinHashLSH over character 4-shingles; Jaccard >= threshold -> duplicate.
-
-    Args:
-        df: Input DataFrame conforming to CANONICAL_SCHEMA.
-        jaccard_threshold: Similarity floor for duplicate detection.
-
-    Returns:
-        DataFrame with duplicates removed (first occurrence kept).
+    Always runs exact-text dedup first (fast). Then runs MinHashLSH near-dup
+    only if the exact-deduped set is below `max_lsh_rows` (LSH is O(N) per
+    insertion and prohibitively slow for ~100K rows).
     """
-    if df.height == 0:
+    df = dedup_exact(df)
+    if df.height == 0 or df.height > max_lsh_rows:
         return df
 
     lsh = MinHashLSH(threshold=jaccard_threshold, num_perm=MINHASH_NUM_PERM)
