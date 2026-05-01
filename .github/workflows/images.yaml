@@ -38,8 +38,6 @@ jobs:
             dockerfile: docker/trainer.Dockerfile
     steps:
       - name: Free disk space
-        # Multi-arch builds via QEMU + large ML images (trainer ~4.6 GB) hit
-        # the 14 GB runner disk cap. Strip preinstalled toolchains we don't use.
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
                       /opt/hostedtoolcache/CodeQL /usr/local/share/boost \
@@ -48,9 +46,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
@@ -81,7 +76,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           # Scope cache per image so parallel matrix jobs don't race
           # on the same GHA blob keys. Suffix invalidates the cache when
