@@ -1,4 +1,3 @@
-level=WARN msg="unable to find exact version requested; falling back to closest available version" chart=flyte-binary requested=1.16.0 selected=v1.16.0
 ---
 # Source: flyte-binary/templates/serviceaccount.yaml
 apiVersion: v1
