@@ -29,32 +29,22 @@ def _make_s3_client() -> Any:
     )
 
 
-@task(
-    cache=True,
-    cache_version="1",
-    retries=3,
-    requests=Resources(cpu="100m", mem="256Mi"),
-    limits=Resources(cpu="500m", mem="512Mi"),
-)
-def download_splits(
-    data_version: str,
-    target_dir: str = "/tmp/splits",
-    bucket: str = "splits",
-) -> str:
-    """Download train/val/test parquets from MinIO into a local dir.
+def _download_splits(data_version: str, target_dir: str = "/tmp/splits") -> Path:
+    """Pull the three split parquets from `s3://splits/<data_version>/` into target_dir.
 
-    Returns the path to the directory containing the three parquet files.
+    Each task runs in its own pod with an isolated filesystem, so each trainer
+    must fetch splits itself rather than receiving a path from an upstream task.
     """
     s3 = _make_s3_client()
     target = Path(target_dir)
     target.mkdir(parents=True, exist_ok=True)
     for name in ("train", "val", "test"):
         s3.download_file(
-            Bucket=bucket,
+            Bucket="splits",
             Key=f"{data_version}/{name}.parquet",
             Filename=str(target / f"{name}.parquet"),
         )
-    return str(target)
+    return target
 
 
 # ---------------------------------------------------------------------------
@@ -66,17 +56,17 @@ _MLFLOW_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow.mlflow.svc.cl
 
 @task(
     cache=True,
-    cache_version="1",
+    cache_version="2",
     retries=1,
     timeout=60 * 10,
     requests=Resources(cpu="500m", mem="1Gi"),
     limits=Resources(cpu="2", mem="2Gi"),
 )
-def train_tfidf(splits_dir: str, data_version: str) -> dict:
-    """Train TF-IDF + LogReg on the splits at `splits_dir`. Logs to MLflow."""
+def train_tfidf(data_version: str) -> dict:
+    """Download splits + train TF-IDF + LogReg + log to MLflow."""
     from ru_jailbreak_guard.models.tfidf_logreg import TrainConfig, train_tfidf_logreg
 
-    splits = Path(splits_dir)
+    splits = _download_splits(data_version)
     cfg = TrainConfig(
         train_path=splits / "train.parquet",
         val_path=splits / "val.parquet",
@@ -91,17 +81,17 @@ def train_tfidf(splits_dir: str, data_version: str) -> dict:
 
 @task(
     cache=True,
-    cache_version="1",
+    cache_version="2",
     retries=1,
-    timeout=60 * 10,
+    timeout=60 * 30,
     requests=Resources(cpu="1", mem="2Gi"),
     limits=Resources(cpu="2", mem="4Gi"),
 )
-def train_lgbm(splits_dir: str, data_version: str) -> dict:
-    """Train LightGBM on ruBERT embeddings."""
+def train_lgbm(data_version: str) -> dict:
+    """Download splits + train LightGBM on ruBERT embeddings."""
     from ru_jailbreak_guard.models.lgbm_emb import TrainConfig, train_lgbm_emb
 
-    splits = Path(splits_dir)
+    splits = _download_splits(data_version)
     artifacts = splits / "artifacts" / "lgbm"
     cfg = TrainConfig(
         train_path=splits / "train.parquet",
@@ -118,17 +108,17 @@ def train_lgbm(splits_dir: str, data_version: str) -> dict:
 
 @task(
     cache=True,
-    cache_version="1",
+    cache_version="2",
     retries=1,
-    timeout=60 * 30,
+    timeout=60 * 60,
     requests=Resources(cpu="1", mem="3Gi"),
     limits=Resources(cpu="4", mem="6Gi"),
 )
-def train_rubert(splits_dir: str, data_version: str) -> dict:
-    """Fine-tune ruBERT-tiny2."""
+def train_rubert(data_version: str) -> dict:
+    """Download splits + fine-tune ruBERT-tiny2."""
     from ru_jailbreak_guard.models.rubert_ft import TrainConfig, train_rubert_ft
 
-    splits = Path(splits_dir)
+    splits = _download_splits(data_version)
     cfg = TrainConfig(
         train_path=splits / "train.parquet",
         val_path=splits / "val.parquet",

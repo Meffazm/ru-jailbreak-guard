@@ -25,6 +25,14 @@ def _task_fn(task_obj):
     return fn
 
 
+def _stub_split_download(splits_dir: Path):
+    """Patch _download_splits to return a pre-populated splits dir without S3."""
+    splits_dir.mkdir(exist_ok=True)
+    for n in ("train", "val", "test"):
+        (splits_dir / f"{n}.parquet").write_bytes(b"")
+    return patch.object(tasks, "_download_splits", return_value=splits_dir)
+
+
 def test_download_splits_pulls_three_parquets(tmp_path: Path) -> None:
     s3_mock = MagicMock()
 
@@ -35,10 +43,9 @@ def test_download_splits_pulls_three_parquets(tmp_path: Path) -> None:
     s3_mock.download_file.side_effect = _download_file
 
     with patch.object(tasks, "_make_s3_client", return_value=s3_mock):
-        result_dir = _task_fn(tasks.download_splits)(
+        result_dir = tasks._download_splits(
             data_version="v123abc456",
             target_dir=str(tmp_path),
-            bucket="splits",
         )
 
     assert Path(result_dir).is_dir()
@@ -49,18 +56,15 @@ def test_download_splits_pulls_three_parquets(tmp_path: Path) -> None:
 
 
 def test_train_tfidf_invokes_underlying_trainer(tmp_path: Path) -> None:
-    """The @task wrapper builds TrainConfig + calls into models.tfidf_logreg."""
+    """The @task wrapper downloads splits + builds TrainConfig + calls trainer."""
     splits_dir = tmp_path / "splits"
-    splits_dir.mkdir()
-    for n in ("train", "val", "test"):
-        (splits_dir / f"{n}.parquet").write_bytes(b"")
 
-    with patch("ru_jailbreak_guard.models.tfidf_logreg.train_tfidf_logreg") as m:
+    with (
+        _stub_split_download(splits_dir),
+        patch("ru_jailbreak_guard.models.tfidf_logreg.train_tfidf_logreg") as m,
+    ):
         m.return_value = {"run_id": "abc", "val_metrics": {"f1": 0.9}, "test_metrics": {"f1": 0.91}}
-        result = _task_fn(tasks.train_tfidf)(
-            splits_dir=str(splits_dir),
-            data_version="v123",
-        )
+        result = _task_fn(tasks.train_tfidf)(data_version="v123")
     assert result["run_id"] == "abc"
     assert result["model_family"] == "tfidf_logreg"
     m.assert_called_once()
@@ -71,33 +75,33 @@ def test_train_tfidf_invokes_underlying_trainer(tmp_path: Path) -> None:
 
 def test_train_lgbm_invokes_underlying_trainer(tmp_path: Path) -> None:
     splits_dir = tmp_path / "splits"
-    splits_dir.mkdir()
-    for n in ("train", "val", "test"):
-        (splits_dir / f"{n}.parquet").write_bytes(b"")
 
-    with patch("ru_jailbreak_guard.models.lgbm_emb.train_lgbm_emb") as m:
+    with (
+        _stub_split_download(splits_dir),
+        patch("ru_jailbreak_guard.models.lgbm_emb.train_lgbm_emb") as m,
+    ):
         m.return_value = {
             "run_id": "xyz",
             "val_metrics": {"f1": 0.95},
             "test_metrics": {"f1": 0.96},
         }
-        result = _task_fn(tasks.train_lgbm)(splits_dir=str(splits_dir), data_version="v123")
+        result = _task_fn(tasks.train_lgbm)(data_version="v123")
     assert result["model_family"] == "lgbm_emb"
     m.assert_called_once()
 
 
 def test_train_rubert_invokes_underlying_trainer(tmp_path: Path) -> None:
     splits_dir = tmp_path / "splits"
-    splits_dir.mkdir()
-    for n in ("train", "val", "test"):
-        (splits_dir / f"{n}.parquet").write_bytes(b"")
 
-    with patch("ru_jailbreak_guard.models.rubert_ft.train_rubert_ft") as m:
+    with (
+        _stub_split_download(splits_dir),
+        patch("ru_jailbreak_guard.models.rubert_ft.train_rubert_ft") as m,
+    ):
         m.return_value = {
             "run_id": "rrr",
             "val_metrics": {"f1": 0.99},
             "test_metrics": {"f1": 0.99},
         }
-        result = _task_fn(tasks.train_rubert)(splits_dir=str(splits_dir), data_version="v123")
+        result = _task_fn(tasks.train_rubert)(data_version="v123")
     assert result["model_family"] == "rubert_ft"
     m.assert_called_once()

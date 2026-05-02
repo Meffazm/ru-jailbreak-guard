@@ -33,12 +33,7 @@ flytekit = pytest.importorskip("flytekit")
 
 @pytest.mark.slow
 def test_cheap_pipeline_local(tmp_path: Path) -> None:
-    """Run cheap_train_pipeline body locally with all three @task primitives mocked."""
-    splits_dir = tmp_path / "fixture-splits"
-    splits_dir.mkdir()
-    for n in ("train", "val", "test"):
-        (splits_dir / f"{n}.parquet").write_bytes(b"")
-
+    """Run cheap_train_pipeline body locally with both train @task primitives mocked."""
     from flyte.workflows import pipelines
 
     fake_tfidf = {
@@ -54,24 +49,18 @@ def test_cheap_pipeline_local(tmp_path: Path) -> None:
         "model_family": "lgbm_emb",
     }
 
-    download_calls: list[dict[str, Any]] = []
     tfidf_calls: list[dict[str, Any]] = []
     lgbm_calls: list[dict[str, Any]] = []
 
-    def fake_download(data_version: str) -> str:
-        download_calls.append({"data_version": data_version})
-        return str(splits_dir)
-
-    def fake_train_tfidf(splits_dir: str, data_version: str) -> dict:
-        tfidf_calls.append({"splits_dir": splits_dir, "data_version": data_version})
+    def fake_train_tfidf(data_version: str) -> dict:
+        tfidf_calls.append({"data_version": data_version})
         return fake_tfidf
 
-    def fake_train_lgbm(splits_dir: str, data_version: str) -> dict:
-        lgbm_calls.append({"splits_dir": splits_dir, "data_version": data_version})
+    def fake_train_lgbm(data_version: str) -> dict:
+        lgbm_calls.append({"data_version": data_version})
         return fake_lgbm
 
     with (
-        patch.object(pipelines, "download_splits", fake_download),
         patch.object(pipelines, "train_tfidf", fake_train_tfidf),
         patch.object(pipelines, "train_lgbm", fake_train_lgbm),
     ):
@@ -80,7 +69,6 @@ def test_cheap_pipeline_local(tmp_path: Path) -> None:
         wrapped = pipelines.cheap_train_pipeline.__wrapped__
         result = wrapped(data_version="vTEST")
 
-    assert result == {"tfidf": fake_tfidf, "lgbm": fake_lgbm}
-    assert download_calls == [{"data_version": "vTEST"}]
-    assert tfidf_calls == [{"splits_dir": str(splits_dir), "data_version": "vTEST"}]
-    assert lgbm_calls == [{"splits_dir": str(splits_dir), "data_version": "vTEST"}]
+    assert result == (fake_tfidf, fake_lgbm)
+    assert tfidf_calls == [{"data_version": "vTEST"}]
+    assert lgbm_calls == [{"data_version": "vTEST"}]
