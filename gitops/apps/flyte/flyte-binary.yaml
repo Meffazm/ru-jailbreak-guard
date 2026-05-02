@@ -178,7 +178,7 @@ data:
         memory: 1Gi
       limits:
         cpu: 4
-        memory: 12Gi
+        memory: 16Gi
         storage: 20Gi
 ---
 # Source: flyte-binary/templates/clusterrole.yaml
@@ -403,7 +403,7 @@ spec:
         app.kubernetes.io/instance: flyte-binary
         app.kubernetes.io/component: flyte-binary
       annotations:
-        checksum/configuration: 8eda06dc961e19b256fdc24cae44cf00654cc5cddb288bf6c7dcdcce6379d1c6
+        checksum/configuration: 491b89479f7aff246dd5c221f10b16f9247ec749c1adb083cea6fe5dcb70c57e
         checksum/configuration-secret: aa98c3af9c12a194210871318ebcbe8ff158b2e5d6dfb75595b752a8afc22986
         checksum/cluster-resource-templates: 140557d589c0945885fa07f62ae388daf0f8e5d32ad28bd7f8aa7b5d737d49e9
     spec:

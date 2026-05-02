@@ -85,7 +85,7 @@ def train_tfidf(data_version: str) -> dict:
     retries=1,
     timeout=60 * 30,
     requests=Resources(cpu="1", mem="4Gi"),
-    limits=Resources(cpu="2", mem="12Gi"),
+    limits=Resources(cpu="2", mem="16Gi"),
 )
 def train_lgbm(data_version: str) -> dict:
     """Download splits + train LightGBM on ruBERT embeddings."""
@@ -112,7 +112,7 @@ def train_lgbm(data_version: str) -> dict:
     retries=1,
     timeout=60 * 90,
     requests=Resources(cpu="1", mem="4Gi"),
-    limits=Resources(cpu="4", mem="12Gi"),
+    limits=Resources(cpu="4", mem="16Gi"),
 )
 def train_rubert(data_version: str) -> dict:
     """Download splits + fine-tune ruBERT-tiny2."""
