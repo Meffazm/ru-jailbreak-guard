@@ -79,8 +79,8 @@ def _read_training_texts(data_version: str, *, max_rows: int = 5000) -> list[str
 
 @task(
     cache=False,
-    retries=1,
-    timeout=60 * 5,
+    retries=2,
+    timeout=60 * 15,
     requests=Resources(cpu="200m", mem="1Gi"),
     limits=Resources(cpu="1", mem="2Gi"),
 )
