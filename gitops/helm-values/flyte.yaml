@@ -29,6 +29,11 @@ configuration:
         default-env-vars:
           - MLFLOW_TRACKING_URI: http://mlflow.mlflow.svc.cluster.local:5000
           - MLFLOW_S3_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
+          # AWS_ENDPOINT_URL_S3 is the boto3-standard env var; without it,
+          # Flytekit's data_persistence boto3 client defaults to real AWS S3
+          # and rejects minioadmin keys.
+          - AWS_ENDPOINT_URL_S3: http://minio.minio.svc.cluster.local:9000
+          - AWS_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
           - AWS_ACCESS_KEY_ID: minioadmin
           - AWS_SECRET_ACCESS_KEY: minioadmin
           - AWS_DEFAULT_REGION: us-east-1
@@ -47,8 +52,6 @@ configuration:
 
 deployment:
   image:
-    # cr.flyte.org redirects to GHCR but Docker Desktop's registry mirror
-    # can't follow the redirect (returns 401). Use the GHCR canonical name.
     repository: ghcr.io/flyteorg/flyte-binary-release
     pullPolicy: IfNotPresent
   replicaCount: 1
@@ -64,9 +67,6 @@ rbac:
   create: true
   extraRules:
     # Allow Flyte to launch + observe task pods anywhere (not just flyte ns).
-    # TODO(phase-8): tighten before cloud install — verbs: ["*"] is overly broad;
-    # cloud Flyte only needs ["get", "list", "watch"] on pods/log and arguably
-    # no pods/exec at all. Local-first auth=disabled tolerates this.
     - apiGroups: [""]
       resources: ["pods", "pods/log", "pods/exec"]
       verbs: ["*"]

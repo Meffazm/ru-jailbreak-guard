@@ -165,6 +165,8 @@ data:
         default-env-vars:
         - MLFLOW_TRACKING_URI: http://mlflow.mlflow.svc.cluster.local:5000
         - MLFLOW_S3_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
+        - AWS_ENDPOINT_URL_S3: http://minio.minio.svc.cluster.local:9000
+        - AWS_ENDPOINT_URL: http://minio.minio.svc.cluster.local:9000
         - AWS_ACCESS_KEY_ID: minioadmin
         - AWS_SECRET_ACCESS_KEY: minioadmin
         - AWS_DEFAULT_REGION: us-east-1
@@ -401,7 +403,7 @@ spec:
         app.kubernetes.io/instance: flyte-binary
         app.kubernetes.io/component: flyte-binary
       annotations:
-        checksum/configuration: 8a29a99d284d2ea8f9e1f9a3205efd792dc59bd7dbc09f0a5a7310689c235eac
+        checksum/configuration: 8e91881247324ef003ba5c3b12b43ef7293dc52a4ecc10de168354f037bcf2ec
         checksum/configuration-secret: aa98c3af9c12a194210871318ebcbe8ff158b2e5d6dfb75595b752a8afc22986
         checksum/cluster-resource-templates: 140557d589c0945885fa07f62ae388daf0f8e5d32ad28bd7f8aa7b5d737d49e9
     spec:
