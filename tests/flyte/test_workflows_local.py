@@ -66,7 +66,7 @@ def test_cheap_pipeline_local(tmp_path: Path) -> None:
     ):
         # __wrapped__ is the raw Python function under @workflow — bypasses
         # Flytekit's Promise/compile machinery so the body runs as plain Python.
-        wrapped = pipelines.cheap_train_pipeline.__wrapped__
+        wrapped = pipelines.cheap_train_pipeline.__wrapped__  # ty: ignore[unresolved-attribute]
         result = wrapped(data_version="vTEST")
 
     assert result == (fake_tfidf, fake_lgbm)
