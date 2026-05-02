@@ -25,7 +25,9 @@ COPY README.md LICENSE /app/
 # because Flyte spawns pods that exec `pyflyte-execute` from this image.
 RUN uv sync --frozen --no-dev --group flyte
 
-# Default command is overridden by Flyte's task runner with `pyflyte-execute`.
-# `sleep infinity` keeps an accidentally-launched container idle without
-# triggering uv resolution; smoke tests should override CMD explicitly.
+# Flyte launches tasks with `pyflyte-execute` as the entry command and expects
+# it on $PATH. uv installs it into /app/.venv/bin; prepend that to PATH.
+ENV PATH="/app/.venv/bin:${PATH}"
+ENV PYTHONPATH="/app/src:/app"
+
 CMD ["sleep", "infinity"]
