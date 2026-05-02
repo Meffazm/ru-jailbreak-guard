@@ -34,35 +34,46 @@ class Encoder:
         revision: str | None = None,
         device: str = "cpu",
         max_length: int = 256,
+        batch_size: int = 32,
     ) -> None:
         self.model_name = model_name
         self.revision = revision
         self.device = device
         self.max_length = max_length
+        self.batch_size = batch_size
         self._tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
         self._model = AutoModel.from_pretrained(model_name, revision=revision).to(device)
         self._model.eval()
 
     def encode(self, texts: list[str]) -> np.ndarray:
-        """Encode `texts` to mean-pooled embeddings.
+        """Encode `texts` to mean-pooled embeddings in fixed-size mini-batches.
+
+        Without batching, the per-call activation tensor is N x max_length x
+        hidden_size which is 9 GB+ at N=30 000 — causing OOM at runtime.
 
         Returns:
             float32 array of shape (N, hidden_size).
         """
+        if not texts:
+            return np.zeros((0, self._model.config.hidden_size), dtype=np.float32)
+        chunks: list[np.ndarray] = []
         with torch.no_grad():
-            tokens = self._tokenizer(  # ty: ignore[call-non-callable]
-                texts,
-                padding=True,
-                truncation=True,
-                max_length=self.max_length,
-                return_tensors="pt",
-            ).to(self.device)
-            outputs = self._model(**tokens)
-            mask = tokens["attention_mask"].unsqueeze(-1).float()
-            summed = (outputs.last_hidden_state * mask).sum(dim=1)
-            counts = mask.sum(dim=1).clamp(min=1.0)
-            mean_pooled = summed / counts
-        return mean_pooled.cpu().numpy().astype(np.float32)
+            for start in range(0, len(texts), self.batch_size):
+                batch = texts[start : start + self.batch_size]
+                tokens = self._tokenizer(  # ty: ignore[call-non-callable]
+                    batch,
+                    padding=True,
+                    truncation=True,
+                    max_length=self.max_length,
+                    return_tensors="pt",
+                ).to(self.device)
+                outputs = self._model(**tokens)
+                mask = tokens["attention_mask"].unsqueeze(-1).float()
+                summed = (outputs.last_hidden_state * mask).sum(dim=1)
+                counts = mask.sum(dim=1).clamp(min=1.0)
+                mean_pooled = summed / counts
+                chunks.append(mean_pooled.cpu().numpy().astype(np.float32))
+        return np.vstack(chunks)
 
 
 class EmbeddingCache:
