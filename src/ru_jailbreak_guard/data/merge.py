@@ -47,9 +47,11 @@ def dedup_exact(df: pl.DataFrame) -> pl.DataFrame:
     """Drop rows with byte-identical normalized text. O(N log N)."""
     if df.height == 0:
         return df
-    return df.with_columns(_norm=pl.col("text").map_elements(_normalize, return_dtype=pl.Utf8)) \
-             .unique(subset=["_norm"], keep="first") \
-             .drop("_norm")
+    return (
+        df.with_columns(_norm=pl.col("text").map_elements(_normalize, return_dtype=pl.Utf8))
+        .unique(subset=["_norm"], keep="first")
+        .drop("_norm")
+    )
 
 
 def dedup_minhash(
