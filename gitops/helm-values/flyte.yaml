@@ -45,7 +45,7 @@ configuration:
         memory: 1Gi
       limits:
         cpu: 4
-        memory: 8Gi
+        memory: 12Gi
         storage: 20Gi
   auth:
     enabled: false  # Auth gating handled at the ingress layer.
