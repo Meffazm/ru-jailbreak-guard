@@ -17,7 +17,7 @@ COPY pyproject.toml uv.lock /app/
 COPY src /app/src
 COPY README.md LICENSE /app/
 
-# UI doesn't need any of the modeling stack — slim aggressively.
+# UI doesn't need any of the modeling stack - slim aggressively.
 RUN uv sync --no-dev --frozen \
     && uv pip uninstall --quiet \
        scikit-learn lightgbm transformers torch accelerate joblib \

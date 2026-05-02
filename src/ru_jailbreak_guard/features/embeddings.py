@@ -23,7 +23,7 @@ class _SupportsEncode(Protocol):
 class Encoder:
     """ruBERT-tiny2 mean-pooled encoder.
 
-    Mean pooling over non-pad tokens — standard for sentence-level embeddings of
+    Mean pooling over non-pad tokens - standard for sentence-level embeddings of
     BERT-family models without a [CLS]-style readout.
     """
 
@@ -49,7 +49,7 @@ class Encoder:
         """Encode `texts` to mean-pooled embeddings in fixed-size mini-batches.
 
         Without batching, the per-call activation tensor is N x max_length x
-        hidden_size which is 9 GB+ at N=30 000 — causing OOM at runtime.
+        hidden_size which is 9 GB+ at N=30 000 - causing OOM at runtime.
 
         Returns:
             float32 array of shape (N, hidden_size).

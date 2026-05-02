@@ -6,7 +6,7 @@ Invoked by ru_jailbreak_guard.data.attack_gen.run_bridge_and_parse via:
 Reads input JSON ({seeds: [...], categories: [...]}) and writes output JSON
 ([{seed_text, attack_name, attack_text}, ...]).
 
-Selects only AlgoAttack/TemplateAttack subclasses (no ModelAttack — those
+Selects only AlgoAttack/TemplateAttack subclasses (no ModelAttack - those
 require a live LLM API). Filters by attack_type membership in `categories`.
 The seed prompt is the harmful instruction; each attack wraps/transforms it
 into an adversarial variant.
@@ -97,7 +97,7 @@ def main() -> int:
 
     attacks = collect_attacks(hivetracered, requested_categories)
     print(
-        f"Bridge: {len(attacks)} attacks ready, {len(seeds)} seeds — "
+        f"Bridge: {len(attacks)} attacks ready, {len(seeds)} seeds - "
         f"will produce up to {len(attacks) * len(seeds)} variants",
         file=sys.stderr,
     )

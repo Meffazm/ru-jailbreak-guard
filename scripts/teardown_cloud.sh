@@ -12,7 +12,7 @@ read -r -p "Type 'destroy' to confirm: " confirm
 [ "$confirm" = "destroy" ] || { echo "Aborted."; exit 1; }
 
 command -v yc >/dev/null 2>&1 || { echo "ERROR: yc CLI not installed."; exit 1; }
-yc iam create-token >/dev/null 2>&1 || { echo "ERROR: 'yc iam create-token' failed — run 'yc init' first."; exit 1; }
+yc iam create-token >/dev/null 2>&1 || { echo "ERROR: 'yc iam create-token' failed - run 'yc init' first."; exit 1; }
 
 cd "$REPO_ROOT/infra"
 TF_VAR_yc_token="$(yc iam create-token)" \

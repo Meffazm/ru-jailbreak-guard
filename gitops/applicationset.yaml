@@ -1,4 +1,4 @@
-# Placeholder ApplicationSet — phases 2+ will populate gitops/apps/
+# Placeholder ApplicationSet - phases 2+ will populate gitops/apps/
 # Currently watches an empty apps/ directory; ArgoCD will not deploy anything.
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet

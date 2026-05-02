@@ -28,7 +28,7 @@ def stratified_split(
     """Split df into (train, val, test). Groups (same normalized text) stay together.
 
     Bucket assignment uses the group_hash (deterministic given seed and text).
-    Stratification by `label` is approximate — the bucket-by-hash approach
+    Stratification by `label` is approximate - the bucket-by-hash approach
     preserves class proportions in expectation.
 
     Args:

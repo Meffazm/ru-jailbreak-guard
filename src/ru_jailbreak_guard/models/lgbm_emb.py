@@ -49,7 +49,7 @@ class TrainConfig:
     experiment_name: str = "lgbm_embeddings"
     data_version: str = "unknown"
     register_as: str = "ru-jailbreak-lgbm-emb"
-    # injected for testability — production uses None and constructs Encoder lazily
+    # injected for testability - production uses None and constructs Encoder lazily
     encoder: Any = field(default=None)
 
 

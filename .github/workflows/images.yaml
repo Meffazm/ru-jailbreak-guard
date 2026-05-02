@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       # fail-fast: false lets us see which build truly failed instead of
-      # cascade-cancelling siblings — useful for diagnosing transient issues
+      # cascade-cancelling siblings - useful for diagnosing transient issues
       fail-fast: false
       matrix:
         image:

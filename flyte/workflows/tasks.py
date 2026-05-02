@@ -48,7 +48,7 @@ def _download_splits(data_version: str, target_dir: str = "/tmp/splits") -> Path
 
 
 # ---------------------------------------------------------------------------
-# Trainer wrappers — each calls into src/ru_jailbreak_guard/models/<family>.py
+# Trainer wrappers - each calls into src/ru_jailbreak_guard/models/<family>.py
 # ---------------------------------------------------------------------------
 
 _MLFLOW_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow.mlflow.svc.cluster.local:5000")

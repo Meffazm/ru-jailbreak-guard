@@ -48,7 +48,7 @@ data:
         }
       ],
       "schemaVersion": 30,
-      "title": "ru-jailbreak — Service Health",
+      "title": "ru-jailbreak - Service Health",
       "uid": "ru-jailbreak-service-health",
       "version": 1
     }
@@ -97,7 +97,7 @@ data:
         }
       ],
       "schemaVersion": 30,
-      "title": "ru-jailbreak — ML Observability",
+      "title": "ru-jailbreak - ML Observability",
       "uid": "ru-jailbreak-ml-observability",
       "version": 1
     }

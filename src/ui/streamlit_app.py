@@ -1,7 +1,7 @@
 """Streamlit multi-model comparison UI for ru-jailbreak-guard.
 
 Three views:
-- Single prediction (default — calls one ISVC, picked by query param or default)
+- Single prediction (default - calls one ISVC, picked by query param or default)
 - Three-way comparison (queries all three family ISVCs concurrently)
 - Recent predictions log (in-memory ring buffer of last N predictions)
 
@@ -45,7 +45,7 @@ def _ensure_metrics_server() -> None:
         start_http_server(9100)
         _METRICS_STARTED = True
     except OSError:
-        # Port already bound by an earlier Streamlit reload — fine.
+        # Port already bound by an earlier Streamlit reload - fine.
         _METRICS_STARTED = True
 
 
@@ -218,7 +218,7 @@ def _view_history() -> None:
 def main() -> None:
     st.set_page_config(page_title="ru-jailbreak-guard", page_icon=":lock:", layout="wide")
     st.title(":lock:  ru-jailbreak-guard")
-    st.caption("Russian-language jailbreak classifier — three model families served via KServe.")
+    st.caption("Russian-language jailbreak classifier - three model families served via KServe.")
 
     with st.sidebar:
         st.header("Mode")

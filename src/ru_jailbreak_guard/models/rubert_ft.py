@@ -236,7 +236,7 @@ def train_rubert_ft(*, cfg: TrainConfig) -> dict[str, Any]:
             # The whole model dir gets logged + registered as a transformers
             # flavor; predictors use mlflow.transformers.load_model() if they
             # want, but our predictor goes via from_pretrained() on the
-            # downloaded artifact path — both work.
+            # downloaded artifact path - both work.
             mlflow.log_artifacts(str(model_dir), artifact_path="model")
             client = mlflow.tracking.MlflowClient()
             with contextlib.suppress(mlflow.exceptions.RestException):

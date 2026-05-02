@@ -1,4 +1,4 @@
-# Prometheus Pushgateway — receives push_to_gateway() calls from the drift
+# Prometheus Pushgateway - receives push_to_gateway() calls from the drift
 # Flyte workflow. Prometheus (in monitoring ns) scrapes it via the
 # ServiceMonitor below.
 apiVersion: apps/v1

@@ -1,4 +1,4 @@
-# Local Terraform state — we destroy after every capture, but never commit it.
+# Local Terraform state - we destroy after every capture, but never commit it.
 .terraform/
 .terraform.lock.hcl
 terraform.tfstate

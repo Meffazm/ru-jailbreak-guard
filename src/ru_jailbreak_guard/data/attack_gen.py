@@ -23,7 +23,7 @@ BRIDGE_SCRIPT = (
 )
 
 # Subset of non-LLM attack categories (AlgoAttack/TemplateAttack subclasses
-# only — ModelAttack would require live LLM API calls). The bridge script
+# only - ModelAttack would require live LLM API calls). The bridge script
 # determines the exact category set at runtime from hivetracered's registry.
 AVAILABLE_ATTACK_CATEGORIES: list[str] = [
     "roleplay",

@@ -18,7 +18,7 @@ case "$CTX" in
     echo "  ✓ context looks like a YC cluster"
     ;;
   *)
-    echo "  ! WARNING: context does not look like a YC cluster — abort if wrong"
+    echo "  ! WARNING: context does not look like a YC cluster - abort if wrong"
     read -r -p "  continue? type 'yes' to proceed: " confirm
     [ "$confirm" = "yes" ] || exit 1
     ;;

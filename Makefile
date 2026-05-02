@@ -4,27 +4,27 @@ SHELL := /bin/bash
 .PHONY: help setup lint format type-check test all clean argocd-ui port-forward-mlflow port-forward-minio port-forward-flyte port-forward-grafana port-forward-prometheus port-forward-alertmanager port-forward-pushgateway port-forward-predictor-tfidf port-forward-predictor-lgbm port-forward-predictor-rubert-ft port-forward-ui train-tfidf train-lgbm train-rubert publish-splits register-workflows trigger-cheap cloud-versions cloud-up cloud-down
 
 help:
-	@echo "ru-jailbreak-guard — top-level commands"
+	@echo "ru-jailbreak-guard - top-level commands"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make setup        — uv sync (install all deps incl. dev)"
+	@echo "  make setup        - uv sync (install all deps incl. dev)"
 	@echo ""
 	@echo "Quality:"
-	@echo "  make lint         — ruff check"
-	@echo "  make format       — ruff format (writes)"
-	@echo "  make type-check   — ty check"
-	@echo "  make test         — pytest"
-	@echo "  make all          — lint + type-check + test"
+	@echo "  make lint         - ruff check"
+	@echo "  make format       - ruff format (writes)"
+	@echo "  make type-check   - ty check"
+	@echo "  make test         - pytest"
+	@echo "  make all          - lint + type-check + test"
 	@echo ""
 	@echo "Local k8s:"
-	@echo "  make argocd-ui            — port-forward ArgoCD UI to localhost:8080"
-	@echo "  make port-forward-mlflow  — port-forward MLflow UI to localhost:5000"
-	@echo "  make port-forward-minio   — port-forward MinIO console to localhost:9001"
+	@echo "  make argocd-ui            - port-forward ArgoCD UI to localhost:8080"
+	@echo "  make port-forward-mlflow  - port-forward MLflow UI to localhost:5000"
+	@echo "  make port-forward-minio   - port-forward MinIO console to localhost:9001"
 	@echo ""
 	@echo "Training (run with port-forwards active):"
-	@echo "  make train-tfidf  — train TF-IDF + LogReg, log to MLflow, register"
-	@echo "  make train-lgbm   — train LightGBM on ruBERT-emb, log to MLflow, register"
-	@echo "  make train-rubert — fine-tune ruBERT-tiny2, log to MLflow, register"
+	@echo "  make train-tfidf  - train TF-IDF + LogReg, log to MLflow, register"
+	@echo "  make train-lgbm   - train LightGBM on ruBERT-emb, log to MLflow, register"
+	@echo "  make train-rubert - fine-tune ruBERT-tiny2, log to MLflow, register"
 
 setup:
 	uv sync
@@ -48,7 +48,7 @@ clean:
 	find . -name __pycache__ -type d -exec rm -rf {} +
 
 argocd-ui:
-	@echo "ArgoCD UI: https://localhost:8080  (self-signed cert — accept browser warning)"
+	@echo "ArgoCD UI: https://localhost:8080  (self-signed cert - accept browser warning)"
 	@echo "Login: admin"
 	@echo "Password (run separately):"
 	@echo "  kubectl -n argocd get secret argocd-initial-admin-secret \\"
@@ -72,7 +72,7 @@ train-tfidf:
 	  --data-version $$(grep -A 2 'split:' dvc.lock | grep 'md5:' | head -1 | awk '{print $$2}')
 
 # OMP_NUM_THREADS=1 + KMP_DUPLICATE_LIB_OK=TRUE: OpenMP conflict between PyTorch
-# and LightGBM on macOS — without these, SIGSEGV at startup.
+# and LightGBM on macOS - without these, SIGSEGV at startup.
 train-lgbm:
 	OMP_NUM_THREADS=1 KMP_DUPLICATE_LIB_OK=TRUE \
 	GIT_SHA=$$(git rev-parse --short HEAD) GIT_BRANCH=$$(git rev-parse --abbrev-ref HEAD) \
@@ -98,7 +98,7 @@ publish-splits:
 	AWS_ACCESS_KEY_ID=minioadmin AWS_SECRET_ACCESS_KEY=minioadmin AWS_DEFAULT_REGION=us-east-1 \
 	uv run python scripts/publish_splits.py --skip-existing
 
-# Current data_version from dvc.lock — sha256 of split-stage output md5s, 12 chars.
+# Current data_version from dvc.lock - sha256 of split-stage output md5s, 12 chars.
 DATA_VERSION = $(shell uv run python -c "import yaml,hashlib; d=yaml.safe_load(open('dvc.lock')); s=d['stages']['split']; print(hashlib.sha256('|'.join(sorted(o['md5'] for o in s['outs'])).encode()).hexdigest()[:12])")
 SHA = $(shell git rev-parse --short HEAD)
 # `:main` is a rolling tag overwritten on every push to main (see images.yaml).
@@ -166,7 +166,7 @@ cloud-versions:
 cloud-up:
 	@echo "Bringing up YC k8s cluster + bootstrapping ArgoCD..."
 	@command -v yc >/dev/null 2>&1 || { echo "ERROR: yc CLI not installed. See docs/runbooks/cloud-defense-capture.md prereqs."; exit 1; }
-	@yc iam create-token >/dev/null 2>&1 || { echo "ERROR: 'yc iam create-token' failed — run 'yc init' first."; exit 1; }
+	@yc iam create-token >/dev/null 2>&1 || { echo "ERROR: 'yc iam create-token' failed - run 'yc init' first."; exit 1; }
 	$(eval K8S_VERSION := $(shell yc managed-kubernetes list-versions 2>/dev/null | grep "REGULAR" | grep -oE '[0-9]+\.[0-9]+' | sort -V | tail -1))
 	@test -n "$(K8S_VERSION)" || { echo "ERROR: could not auto-detect k8s version from 'yc managed-kubernetes list-versions'. Pass TF_VAR_k8s_version=X.Y explicitly."; exit 1; }
 	@echo "Using latest k8s version: $(K8S_VERSION)"

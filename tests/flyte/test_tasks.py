@@ -1,4 +1,4 @@
-"""Unit tests for flyte/workflows/tasks.py — call task bodies directly."""
+"""Unit tests for flyte/workflows/tasks.py - call task bodies directly."""
 
 from __future__ import annotations
 

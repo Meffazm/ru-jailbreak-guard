@@ -6,9 +6,9 @@ from typing import Literal
 
 from prometheus_client import Counter, Gauge, Histogram
 
-# Bucket boundaries for confidence — centered around the [0,1] range
+# Bucket boundaries for confidence - centered around the [0,1] range
 _CONFIDENCE_BUCKETS = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99)
-# Inference latency in seconds — log-spaced
+# Inference latency in seconds - log-spaced
 _LATENCY_BUCKETS = (0.001, 0.005, 0.010, 0.025, 0.050, 0.100, 0.250, 0.500, 1.0, 2.5)
 # Token count proxy buckets
 _TOKEN_BUCKETS = (8, 16, 32, 64, 128, 256, 512, 1024, 2048)

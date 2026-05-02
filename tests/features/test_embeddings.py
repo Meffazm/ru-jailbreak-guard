@@ -17,7 +17,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 @pytest.mark.slow
 def test_encoder_returns_2d_array_shape() -> None:
-    """Hits real model — slow, but only once. Marked slow."""
+    """Hits real model - slow, but only once. Marked slow."""
     enc = Encoder(model_name="cointegrated/rubert-tiny2", device="cpu")
     out = enc.encode(["привет", "тест"])
     assert out.shape == (2, 312)  # rubert-tiny2 hidden size = 312

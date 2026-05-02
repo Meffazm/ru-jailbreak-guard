@@ -20,7 +20,7 @@ select = [
     "PLR0913", # pylint too-many-arguments
 ]
 ignore = [
-    "E501",  # line too long — formatter handles
+    "E501",  # line too long - formatter handles
 ]
 
 [lint.per-file-ignores]

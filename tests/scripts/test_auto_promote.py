@@ -1,4 +1,4 @@
-"""Tests for auto_promote.py — diffing MLflow vs gitops modelVersion pin."""
+"""Tests for auto_promote.py - diffing MLflow vs gitops modelVersion pin."""
 
 from __future__ import annotations
 

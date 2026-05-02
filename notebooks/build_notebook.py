@@ -27,7 +27,7 @@ def code(src: str) -> dict:
 
 
 CELLS = [
-    md("""# EDA + baseline experiments — ru-jailbreak-guard
+    md("""# EDA + baseline experiments - ru-jailbreak-guard
 
 This notebook covers:
 1. Exploratory data analysis on the merged HiveTrace + dmtrdr + benign-Wiki dataset
@@ -74,7 +74,7 @@ print(f'val:   {len(val):>6} rows')
 print(f'test:  {len(test):>6} rows')
 train.head(3)
 """),
-    md("## 3. EDA — class balance"),
+    md("## 3. EDA - class balance"),
     code("""label_counts = (
     pl.concat([
         train.with_columns(pl.lit('train').alias('split')),
@@ -99,7 +99,7 @@ ax.set_xticks(x); ax.set_xticklabels(splits)
 ax.set_ylabel('rows'); ax.set_title('class balance per split')
 ax.legend(); plt.tight_layout(); plt.show()
 """),
-    md("## 4. EDA — source / subcategory"),
+    md("## 4. EDA - source / subcategory"),
     code("""src_counts = (
     pl.concat([
         train.with_columns(pl.lit('train').alias('split')),
@@ -118,7 +118,7 @@ attacks = train.filter(pl.col('source') == 'hivetracered_attack')
 print(f'hivetracered rows in train: {len(attacks)}')
 print(attacks.group_by('subcategory').len().sort('subcategory'))
 """),
-    md("## 5. EDA — text length distribution by class"),
+    md("## 5. EDA - text length distribution by class"),
     code("""train_with_len = train.with_columns(pl.col('text').str.len_chars().alias('chars'))
 fig, ax = plt.subplots(1, 1, figsize=(8, 4))
 for label, color in [(0, '#2ca02c'), (1, '#d62728')]:
@@ -134,7 +134,7 @@ for label in (0, 1):
     sub = train_with_len.filter(pl.col('label') == label)['chars'].to_numpy()
     print(f'  label={label}: median={int(np.median(sub))}, p95={int(np.percentile(sub, 95))}')
 """),
-    md("## 6. EDA — cyrillic ratio (signal that benign tends to be more Russian)"),
+    md("## 6. EDA - cyrillic ratio (signal that benign tends to be more Russian)"),
     code("""def cyr_ratio(s: str) -> float:
     if not s:
         return 0.0
@@ -145,7 +145,7 @@ train_pd = train.to_pandas()
 train_pd['cyr'] = train_pd['text'].astype(str).map(cyr_ratio)
 print(train_pd.groupby('label')['cyr'].agg(['mean', 'median', 'std']).round(3))
 """),
-    md("""## 7. Model 1 — TF-IDF + Logistic Regression
+    md("""## 7. Model 1 - TF-IDF + Logistic Regression
 
 Hyperparameters tuned by light grid search on val F1 (commented out for speed).
 Final config below.
@@ -180,7 +180,7 @@ print(json.dumps(tfidf_metrics, indent=2))
 print('\\nclassification report (test):')
 print(classification_report(y_test, test_pred, target_names=['benign', 'jailbreak']))
 """),
-    md("## 8. Model 2 — LightGBM on ruBERT-tiny2 mean-pooled embeddings"),
+    md("## 8. Model 2 - LightGBM on ruBERT-tiny2 mean-pooled embeddings"),
     code("""import torch
 from transformers import AutoModel, AutoTokenizer
 
@@ -243,7 +243,7 @@ print(json.dumps(lgb_metrics, indent=2))
 print('\\nclassification report (test):')
 print(classification_report(y_test, test_pred_lgb, target_names=['benign', 'jailbreak']))
 """),
-    md("""## 9. Model 3 — Fine-tuned ruBERT-tiny2
+    md("""## 9. Model 3 - Fine-tuned ruBERT-tiny2
 
 Trained 2 epochs on a sample (12k train, 2k val) for notebook speed; full-data
 fine-tune happens via `make train-rubert` against the production MLflow.
@@ -364,7 +364,7 @@ pd.DataFrame(rows)
     md("""## 12. Conclusions
 
 - **Class balance** is well-controlled by `balance_classes` at the merge stage; train/val/test all sit at ~50/50.
-- **Source skew** is real — `benign_wiki` dominates the negative class, so models implicitly learn "Wikipedia-style prose vs. instruction templates" as much as anything else. Adding `wildguardmix` (gated) and out-of-domain benign would harden the negative class.
+- **Source skew** is real - `benign_wiki` dominates the negative class, so models implicitly learn "Wikipedia-style prose vs. instruction templates" as much as anything else. Adding `wildguardmix` (gated) and out-of-domain benign would harden the negative class.
 - **TF-IDF + LogReg** is a surprisingly strong baseline because adversarial Russian prompts are stylistically distinct from Wikipedia prose. Captures lexical patterns ("игнорируй", "забудь предыдущие инструкции", roleplay framings).
 - **LightGBM on embeddings** matches or beats TF-IDF and generalizes better to paraphrased attacks since the encoder collapses lexical surface variation.
 - **Fine-tuned ruBERT-tiny2** is the strongest on full-data runs; on the 12k subsample it's competitive but the gap is tighter.

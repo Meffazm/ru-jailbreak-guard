@@ -1,6 +1,6 @@
 """Slow integration test: cheap_train_pipeline composition wired to real @task fns.
 
-Marked @pytest.mark.slow — excluded from `make test` (default CI).
+Marked @pytest.mark.slow - excluded from `make test` (default CI).
 Run with: `uv run --group flyte pytest -m slow tests/flyte/test_workflows_local.py`.
 
 Why this is needed: `tests/flyte/test_tasks.py` only verifies each @task body in
@@ -64,7 +64,7 @@ def test_cheap_pipeline_local(tmp_path: Path) -> None:
         patch.object(pipelines, "train_tfidf", fake_train_tfidf),
         patch.object(pipelines, "train_lgbm", fake_train_lgbm),
     ):
-        # __wrapped__ is the raw Python function under @workflow — bypasses
+        # __wrapped__ is the raw Python function under @workflow - bypasses
         # Flytekit's Promise/compile machinery so the body runs as plain Python.
         wrapped = pipelines.cheap_train_pipeline.__wrapped__  # ty: ignore[unresolved-attribute]
         result = wrapped(data_version="vTEST")
