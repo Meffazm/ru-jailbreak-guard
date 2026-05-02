@@ -1,7 +1,5 @@
-# One-shot Job: create the flyte-meta bucket in MinIO.
+# One-shot Job: create all MinIO buckets the stack needs.
 # Idempotent: mc mb --ignore-existing.
-# The `splits` bucket is owned by `scripts/publish_splits.py` (host-side),
-# which creates it on first call to `make publish-splits`.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -31,5 +29,5 @@ spec:
                 echo "Waiting for MinIO..."
                 sleep 3
               done
-              mc mb --ignore-existing minio/flyte-meta
+              mc mb --ignore-existing minio/flyte-meta minio/splits minio/predictions
               mc ls minio/
