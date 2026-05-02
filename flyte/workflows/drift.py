@@ -47,15 +47,7 @@ def _embed_texts(texts: list[str]) -> np.ndarray:
     return feats
 
 
-@task(
-    cache=False,
-    retries=2,
-    timeout=60 * 5,
-    requests=Resources(cpu="200m", mem="512Mi"),
-    limits=Resources(cpu="500m", mem="1Gi"),
-)
-def fetch_production_samples(family: str, days: int = 7) -> list[str]:
-    """List parquet files in s3://predictions/<recent dates>/<family>/, read 'text' col."""
+def _read_production_texts(family: str, days: int = 7) -> list[str]:
     s3 = _make_s3_client()
     today = dt.datetime.now(tz=dt.UTC).date()
     texts: list[str] = []
@@ -76,18 +68,12 @@ def fetch_production_samples(family: str, days: int = 7) -> list[str]:
     return texts
 
 
-@task(
-    cache=False,
-    retries=2,
-    timeout=60 * 5,
-    requests=Resources(cpu="200m", mem="512Mi"),
-    limits=Resources(cpu="500m", mem="1Gi"),
-)
-def fetch_training_baseline(data_version: str) -> list[str]:
-    """Pull train.parquet from s3://splits/<data_version>/ and return texts."""
+def _read_training_texts(data_version: str, *, max_rows: int = 5000) -> list[str]:
     s3 = _make_s3_client()
     body = s3.get_object(Bucket="splits", Key=f"{data_version}/train.parquet")["Body"].read()
     df = pl.read_parquet(io.BytesIO(body))
+    if len(df) > max_rows:
+        df = df.sample(n=max_rows, seed=42)
     return df["text"].to_list()
 
 
@@ -98,7 +84,14 @@ def fetch_training_baseline(data_version: str) -> list[str]:
     requests=Resources(cpu="200m", mem="1Gi"),
     limits=Resources(cpu="1", mem="2Gi"),
 )
-def compute_drift_task(production_texts: list[str], training_texts: list[str], family: str) -> dict:
+def compute_drift_task(data_version: str, family: str) -> dict:
+    """Fetch prod + training texts, compute drift, return small report dict.
+
+    Both fetches happen inside one task to avoid Flyte's 2 MB inter-task output
+    limit (training set serialized as list[str] is ~33 MB).
+    """
+    production_texts = _read_production_texts(family=family)
+    training_texts = _read_training_texts(data_version=data_version)
     if len(production_texts) < 100:
         return {
             "drift_detected": False,
@@ -160,8 +153,6 @@ def push_drift_metric(report: dict, family: str) -> None:
 @workflow
 def drift_detect(data_version: str, family: str = "tfidf_logreg") -> dict:
     """Per-family drift detection. Run via launchplan or pyflyte run."""
-    prod = fetch_production_samples(family=family)
-    train = fetch_training_baseline(data_version=data_version)
-    report = compute_drift_task(production_texts=prod, training_texts=train, family=family)
+    report = compute_drift_task(data_version=data_version, family=family)
     push_drift_metric(report=report, family=family)
     return report  # ty: ignore[invalid-return-type]
