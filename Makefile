@@ -101,7 +101,10 @@ publish-splits:
 # Current data_version from dvc.lock — sha256 of split-stage output md5s, 12 chars.
 DATA_VERSION = $(shell uv run python -c "import yaml,hashlib; d=yaml.safe_load(open('dvc.lock')); s=d['stages']['split']; print(hashlib.sha256('|'.join(sorted(o['md5'] for o in s['outs'])).encode()).hexdigest()[:12])")
 SHA = $(shell git rev-parse --short HEAD)
-TRAINER_IMAGE = ghcr.io/meffazm/ru-jailbreak-guard/trainer:sha-$(SHA)
+# `:main` is a rolling tag overwritten on every push to main (see images.yaml).
+# Use it because yaml-only commits don't trigger image rebuilds, so the
+# current SHA may not have a corresponding image.
+TRAINER_IMAGE ?= ghcr.io/meffazm/ru-jailbreak-guard/trainer:main
 
 # --copy none skips fast-register tarball upload. Flyte's signed URL points at
 # in-cluster `minio.minio.svc.cluster.local:9000`, unreachable from the laptop.

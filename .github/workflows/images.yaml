@@ -65,6 +65,11 @@ jobs:
           OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           IMAGE=ghcr.io/${OWNER_LC}/ru-jailbreak-guard/${{ matrix.image.name }}
           TAGS="$IMAGE:sha-$SHORT_SHA"
+          # Always overwrite :main on main pushes so consumers can pin a
+          # rolling pointer when the current commit had no image rebuild.
+          if [[ "${GITHUB_REF}" == refs/heads/main ]]; then
+            TAGS="$TAGS,$IMAGE:main"
+          fi
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
             TAGS="$TAGS,$IMAGE:$VERSION,$IMAGE:latest"
